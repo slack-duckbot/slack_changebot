@@ -1,15 +1,17 @@
 import os
-import pprint
-import slack
 from flask import jsonify, json
 from flask import Flask
 from flask import request, Response, make_response
+import slack
 from slackeventsapi import SlackEventAdapter
 
 app = Flask(__name__)
 
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_TOKEN = os.environ["SLACK_TOKEN"]
+
+print(SLACK_TOKEN)
+print(SLACK_SIGNING_SECRET)
 
 client = slack.WebClient(token=SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/events", app)
