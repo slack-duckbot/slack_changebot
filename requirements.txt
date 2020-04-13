@@ -1,0 +1,5 @@
+Flask
+slackeventsapi
+slack
+pytest
+black
