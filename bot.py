@@ -8,13 +8,8 @@ from slackeventsapi import SlackEventAdapter
 
 app = Flask(__name__)
 
-SLACK_SIGNING_SECRET = os.environ.get(
-    "SLACK_SIGNING_SECRET", "b6acda85de7e145fa620cb2de2d6cd05"
-)
-
-SLACK_TOKEN = os.environ.get(
-    "SLACK_TOKEN", "xoxb-2352877446-1054758032930-lU3pGZaCBCUcW098RGyvjnKP"
-)
+SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
+SLACK_TOKEN = os.environ["SLACK_TOKEN"]
 
 slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/events", app)
 
@@ -173,4 +168,4 @@ user_list = get_user_list()
 
 # Start the server on port 3000
 if __name__ == "__main__":
-    app.run(port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(port=int(os.environ.get("PORT", 5000)))
