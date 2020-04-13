@@ -173,4 +173,4 @@ user_list = get_user_list()
 
 # Start the server on port 3000
 if __name__ == "__main__":
-    app.run(port=3000, debug=True)
+    app.run(port=int(os.environ.get("PORT", 5000)), debug=True)
