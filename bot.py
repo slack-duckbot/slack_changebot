@@ -11,9 +11,9 @@ app = Flask(__name__)
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_TOKEN = os.environ["SLACK_TOKEN"]
 
+client = slack.WebClient(token=SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/events", app)
 
-client = slack.WebClient(token=SLACK_TOKEN)
 
 CHANGES = {}
 
@@ -166,6 +166,6 @@ def process_interactive():
 
 user_list = get_user_list()
 
-# Start the server on port 3000
+# Start the server on port 5000
 if __name__ == "__main__":
     app.run(port=int(os.environ.get("PORT", 5000)))
