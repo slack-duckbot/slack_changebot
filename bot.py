@@ -8,12 +8,17 @@ from slackeventsapi import SlackEventAdapter
 
 app = Flask(__name__)
 
-slack_events_adapter = SlackEventAdapter(
-    "b6acda85de7e145fa620cb2de2d6cd05", "/events", app
+SLACK_SIGNING_SECRET = os.environ.get(
+    "SLACK_SIGNING_SECRET", "b6acda85de7e145fa620cb2de2d6cd05"
 )
 
-slack_token = "xoxb-2352877446-1054758032930-lU3pGZaCBCUcW098RGyvjnKP"
-client = slack.WebClient(token=slack_token)
+SLACK_TOKEN = os.environ.get(
+    "SLACK_TOKEN", "xoxb-2352877446-1054758032930-lU3pGZaCBCUcW098RGyvjnKP"
+)
+
+slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/events", app)
+
+client = slack.WebClient(token=SLACK_TOKEN)
 
 CHANGES = {}
 
@@ -57,7 +62,7 @@ def create_channel(channel_name, channel_topic):
 
 
 def invite_to_channel(channel_id, list_of_users):
-    for user in list_of_users:
+    for user in list_of_usewrs:
         response = client.conversations_invite(channel=channel_id, users=f"{user}")
         print(response)
 
