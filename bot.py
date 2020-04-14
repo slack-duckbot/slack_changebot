@@ -1,17 +1,24 @@
 import os
+import sys
+import logging
+import requests
+from pprint import pprint, pformat
 from flask import jsonify, json
 from flask import Flask
 from flask import request, Response, make_response
 import slack
 from slackeventsapi import SlackEventAdapter
 
+import settings
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("slack").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+
 app = Flask(__name__)
 
-SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
-SLACK_TOKEN = os.environ["SLACK_TOKEN"]
-
-client = slack.WebClient(token=SLACK_TOKEN)
-slack_events_adapter = SlackEventAdapter(SLACK_SIGNING_SECRET, "/events", app)
+client = slack.WebClient(token=settings.SLACK_TOKEN)
+slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
 CHANGES = {}
 
@@ -60,16 +67,16 @@ def invite_to_channel(channel_id, list_of_users):
         print(response)
 
 
-@slack_events_adapter.on("app_mention")
-def app_mention(event_data):
-    print(event_data)
+# @slack_events_adapter.on("app_mention")
+# def app_mention(event_data):
+#     print(event_data)
 
 
 @app.route("/commands", methods=["POST"])
 def process_command():
-    print(request.form["command"])
-    print(request.form["text"])
-    print(request.form)
+    logging.debug(request.form["command"])
+    logging.debug(request.form["text"])
+    logging.debug(request.form)
 
     user_id = request.form["user_id"]
     print(user_id)
@@ -79,18 +86,17 @@ def process_command():
         channel=request.form["channel_id"],
         user=user_id,
         text="I'm the Change Bot and I'm here to help you create a change!",
-        attachments=[
+        blocks=[
             {
-                "text": "",
-                "callback_id": user_id + "change_request_form",
-                "color": "#3AA3E3",
-                "attachment_type": "default",
-                "actions": [
+                "type": "actions",
+                "block_id": "actions1",
+                "elements": [
                     {
-                        "name": "create_change",
-                        "text": "Create Change",
                         "type": "button",
+                        "text": {"type": "plain_text", "text": "Create Change"},
                         "value": "create_change",
+                        "action_id": "create_change",
+                        "style": "primary",
                     }
                 ],
             }
@@ -100,7 +106,7 @@ def process_command():
     print(change_ephemeral)
 
     CHANGES[user_id] = {
-        "change_channel": request.form["channel_id"],
+        "conversation": request.form["channel_id"],
         "message_ts": "",
         "change": {},
     }
@@ -113,51 +119,108 @@ def process_command():
 @app.route("/interactive", methods=["POST"])
 def process_interactive():
 
-    print(request.form.to_dict())
-
+    logging.debug(request.form)
     message_action = json.loads(request.form["payload"])
-
     user_id = message_action["user"]["id"]
 
-    if message_action["type"] == "interactive_message":
+    if message_action["type"] == "block_actions":
         # Add the message_ts to the user's order info
-        CHANGES[user_id]["message_ts"] = message_action["message_ts"]
+        message_ts = message_action["container"]["message_ts"]
+        response_url = message_action["response_url"]
+        CHANGES[user_id]["message_ts"] = message_ts
 
         print(CHANGES)
+        print(response_url)
 
-        view_response = client.views_open(
+        view_open = client.views_open(
             trigger_id=message_action["trigger_id"],
             view={
                 "type": "modal",
                 "callback_id": "create_change_modal",
-                "title": {"type": "plain_text", "text": "Create change"},
+                "title": {
+                    "type": "plain_text",
+                    "text": "Create change channel",
+                    "emoji": True,
+                },
+                "submit": {"type": "plain_text", "text": "Create", "emoji": True},
+                "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
                 "blocks": [
                     {
                         "type": "input",
-                        "label": {"type": "plain_text", "text": "Input label"},
                         "element": {
                             "type": "plain_text_input",
-                            "action_id": "change_number",
+                            "action_id": "txt_change_no",
                             "multiline": False,
                         },
-                        "optional": False,
-                    }
+                        "block_id": "change_no",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Change Number",
+                            "emoji": False,
+                        },
+                    },
+                    {
+                        "type": "input",
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "txt_change_description",
+                            "multiline": False,
+                        },
+                        "block_id": "change_description",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Description",
+                            "emoji": False,
+                        },
+                    },
                 ],
-                "close": {"type": "plain_text", "text": "Cancel"},
-                "submit": {"type": "plain_text", "text": "Create Channel"},
             },
         )
 
-    elif message_action["type"] == "view_submission":
-        print(CHANGES[user_id]["change_channel"])
-        print(CHANGES[user_id]["message_ts"])
-        chat_delete = client.chat_delete(
-            channel=CHANGES[user_id]["change_channel"],
-            ts=CHANGES[user_id]["message_ts"],
-            as_user=True,
-        )
+        r = requests.post(response_url, data={"delete_original": True})
 
-        print(chat_delete)
+        # return jsonify(
+        #     {
+        #         "response_type": "ephemeral",
+        #         "text": "",
+        #         "replace_original": True,
+        #         "delete_original": True,
+        #     }
+        # )
+
+    elif message_action["type"] == "view_submission":
+
+        logging.debug(pformat(request.form.to_dict()))
+
+        state_values = message_action["view"]["state"]["values"]
+
+        pprint(state_values)
+
+        change_no = state_values["change_no"]["txt_change_no"]["value"]
+        change_description = state_values["change_description"][
+            "txt_change_description"
+        ]["value"]
+
+        # TODO: Check whether the channel already exists.
+
+        # Create the new channel and set purpose / topic
+        new_channel = client.conversations_create(name=f"111-change-{change_no}")
+        new_channel_id = new_channel["channel"]["id"]
+        client.conversations_setPurpose(
+            channel=new_channel_id, purpose=change_description
+        )
+        client.conversations_setTopic(channel=new_channel_id, topic=change_description)
+
+        print(new_channel)
+
+        # Invite the original user into the channel
+        client.conversations_invite(channel=new_channel_id, users=[user_id])
+
+        client.chat_postMessage(
+            as_user=True,
+            channel=CHANGES[user_id]["conversation"],
+            text=f"<@{user_id}> created <#{new_channel['channel']['id']}>\n>*{change_description}*",
+        )
 
     return make_response("", 200)
 
