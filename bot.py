@@ -157,16 +157,22 @@ def process_interactive():
 @slack_events_adapter.on("channel_created")
 def channel_created(event_data):
     user_id = event_data["event"]["channel"]["creator"]
-    channel_name = event_data["event"]["channel"]["id"]
+
+    # channel_name is used to do logic via the name
+    channel_name = event_data["event"]["channel"]["name"]
+    
+    # channel_id is used to pass within slack messages instead of name
+    # so slack can handle private channels correctly.
+    channel_id =  event_data["event"]["channel"]["id"]
 
     user = client.users_info(user=user_id)["user"]
     username = user["name"]
 
     # Only update channel on event when it was manually created
-    if user["is_bot"] is False:
+    if channel_name.startswith("111-change-") is True and user["is_bot"] is False:
         client.chat_postMessage(
             channel="111-changes",
-            text=f"<@{username}> manually created <#{channel_name}>",
+            text=f"<@{username}> manually created <#{channel_id}>",
         )
 
 user_list = get_user_list()
