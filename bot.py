@@ -154,6 +154,21 @@ def process_interactive():
         return make_response("", 200)
 
 
+@slack_events_adapter.on("channel_created")
+def channel_created(event_data):
+    user_id = event_data["event"]["channel"]["creator"]
+    channel_name = event_data["event"]["channel"]["id"]
+
+    user = client.users_info(user=user_id)["user"]
+    username = user["name"]
+
+    # Only update channel on event when it was manually created
+    if user["is_bot"] is False:
+        client.chat_postMessage(
+            channel="111-changes",
+            text=f"<@{username}> manually created <#{channel_name}>",
+        )
+
 user_list = get_user_list()
 
 # Start the server on port 5000

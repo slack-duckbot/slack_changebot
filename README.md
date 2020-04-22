@@ -10,3 +10,4 @@
 - Works with following scopes (some may not be needed): users:read, commands, chat:write, channels:read, channels:manage, channels:join, channels:history
 - Interactivity should be enabled with redirect going to /interactive
 - Make a slash command (arbitary name) with request URL going to /commands
+- Add /events URL to events subscriptions and enable
