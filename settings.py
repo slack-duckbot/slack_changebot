@@ -4,13 +4,21 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
+
+def config_string_to_bool(setting):
+    if setting.lower() in ("true", "yes", "on"):
+        return True
+    else:
+        return False
+
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_TOKEN = os.environ["SLACK_TOKEN"]
 
-
-# Feature toggles
+# Jira configuration
 JIRA_USERNAME = os.environ["JIRA_USERNAME"]
 JIRA_PASSWORD = os.environ["JIRA_PASSWORD"]
 JIRA_SERVER = os.environ["JIRA_SERVER"]
 JIRA_PROJECT_KEY = os.environ["JIRA_PROJECT_KEY"]
-CREATE_JIRA_VERSIONS = os.environ["CREATE_JIRA_VERSIONS"]
+
+# Feature toggles
+ENABLE_JIRA_INTEGRATION = config_string_to_bool(os.environ["ENABLE_JIRA_INTEGRATION"])

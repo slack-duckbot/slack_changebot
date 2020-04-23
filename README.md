@@ -23,7 +23,7 @@ JIRA_USERNAME=
 JIRA_PASSWORD=
 JIRA_SERVER=
 JIRA_PROJECT_KEY=TEST111
-CREATE_JIRA_VERSIONS=False
+ENABLE_JIRA_INTEGRATION=False
 ```
 
-CREATE_JIRA_VERSIONS is used as a flag to enable/disable Jira integration.
+ENABLE_JIRA_INTEGRATION is used as a flag to enable/disable Jira integration.

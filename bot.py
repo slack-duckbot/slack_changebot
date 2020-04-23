@@ -8,7 +8,7 @@ import slack
 from slackeventsapi import SlackEventAdapter
 
 import settings
-from features.jira import create_jira_release
+from feature_jira import create_jira_release
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -153,12 +153,10 @@ def process_interactive():
         jira_text = ""
         if jira_release_url is not False:
             jira_text = f"\n*Jira release:* <{jira_release_url}>"
-
         client.chat_postMessage(
             channel="111-changes",
             text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
         )
-
 
         return make_response("", 200)
 
