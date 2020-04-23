@@ -8,6 +8,8 @@ import slack
 from slackeventsapi import SlackEventAdapter
 
 import settings
+from features.jira import create_jira_release
+
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
@@ -114,6 +116,7 @@ def process_interactive():
 
     message_payload = json.loads(request.form["payload"])
     user_id = message_payload["user"]["id"]
+    user_name = message_payload["user"]["name"]
 
     if message_payload["type"] == "view_submission":
 
@@ -146,13 +149,18 @@ def process_interactive():
         # Invite the original user into the channel
         client.conversations_invite(channel=new_channel_id, users=[user_id])
 
+        jira_release_url = create_jira_release(change_number, user_name, change_summary)
+        jira_text = ""
+        if jira_release_url is not False:
+            jira_text = f"\n*Jira release:* <{jira_release_url}>"
+
         client.chat_postMessage(
             channel="111-changes",
-            text=f"<@{user_id}> created <#{new_channel['channel']['id']}>\n>*{change_summary}*",
+            text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
         )
 
-        return make_response("", 200)
 
+        return make_response("", 200)
 
 @slack_events_adapter.on("channel_created")
 def channel_created(event_data):
