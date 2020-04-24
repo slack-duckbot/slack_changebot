@@ -7,7 +7,7 @@
 - Install ngrok so you can tunnel the bot into slack
 - Make a .env file with the variables used in settings.py
 - SLACK_TOKEN is Bot User OAuth Access Token
-- Works with following scopes (some may not be needed): users:read, commands, chat:write, channels:read, channels:manage, channels:join, channels:history
+- Works with following scopes (some may not be needed): users:read, commands, chat:write, channels:read, channels:manage, channels:join, channels:history, files:write, pins:write
 - Interactivity should be enabled with redirect going to /interactive
 - Make a slash command (arbitary name) with request URL going to /commands
 - Add /events URL to events subscriptions and enable
