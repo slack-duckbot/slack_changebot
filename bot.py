@@ -1,6 +1,5 @@
 import os
 import logging
-from pprint import pprint, pformat
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
@@ -19,6 +18,9 @@ client = slack.WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
 CHANGES = {}
+
+# Create a set which will provide simple idempotency support for event callbacks
+REQUESTS = set()
 
 
 def get_user_list():
@@ -156,6 +158,12 @@ def process_interactive():
 
 @slack_events_adapter.on("channel_created")
 def channel_created(event_data):
+    event_id = event_data["event_id"]
+
+    if event_id in REQUESTS:
+        logging.debug("Skipping duplicate request")
+        return
+
     user_id = event_data["event"]["channel"]["creator"]
 
     # channel_name is used to do logic via the name
@@ -163,7 +171,7 @@ def channel_created(event_data):
     
     # channel_id is used to pass within slack messages instead of name
     # so slack can handle private channels correctly.
-    channel_id =  event_data["event"]["channel"]["id"]
+    channel_id = event_data["event"]["channel"]["id"]
 
     user = client.users_info(user=user_id)["user"]
     username = user["name"]
@@ -174,6 +182,10 @@ def channel_created(event_data):
             channel="111-changes",
             text=f"<@{username}> manually created <#{channel_id}>",
         )
+
+    # Add the completed event_id to the REQUESTS set
+    REQUESTS.add(event_id)
+
 
 user_list = get_user_list()
 
