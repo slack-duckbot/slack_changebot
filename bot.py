@@ -229,8 +229,7 @@ def process_interactive():
             content = release_notes,
             filename = f"Change {change_number}",
             filetype = "post",
-            channels = new_channel_id,
-            editable = True
+            channels = new_channel_id
         )
         file_timestamp = file_response["file"]["shares"]["public"][new_channel_id][0]["ts"]
         client.pins_add(channel=new_channel_id, timestamp=file_timestamp)
