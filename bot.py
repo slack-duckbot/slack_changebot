@@ -111,6 +111,7 @@ def process_command():
                 {
                     "type": "input",
                     "block_id": "release_notes",
+                    "optional": True,
                     "label": {
                         "type": "plain_text",
                         "text": "Release notes"
