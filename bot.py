@@ -51,6 +51,13 @@ def does_channel_exist(channel_name):
         return False
 
 
+def get_conversation_info(conversation_id):
+    print(conversation_id)
+    info = client.conversations_info(conversation_id)
+    print(info)
+    return info
+
+
 @app.route("/commands", methods=["POST"])
 def process_command():
     logging.debug(request.form["command"])
@@ -161,6 +168,7 @@ def process_interactive():
         )
 
         return make_response("", 200)
+
 
 @slack_events_adapter.on("channel_created")
 def channel_created(event_data):
