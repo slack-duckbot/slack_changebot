@@ -1,4 +1,4 @@
-# changebot
+# changebot v0.1
 
 ## Windows installation
 
