@@ -148,11 +148,11 @@ def process_interactive():
 
         # Invite the original user into the channel
         client.conversations_invite(channel=new_channel_id, users=[user_id])
-
         jira_release_url = create_jira_release(change_number, user_name, change_summary)
         jira_text = ""
         if jira_release_url is not False:
             jira_text = f"\n*Jira release:* <{jira_release_url}>"
+
         client.chat_postMessage(
             channel="111-changes",
             text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
