@@ -3,3 +3,4 @@ slackclient
 slackeventsapi
 gunicorn
 python-dotenv
+jira

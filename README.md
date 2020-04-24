@@ -1,4 +1,4 @@
-# changebot
+# changebot v0.1
 
 ## Windows installation
 
@@ -11,3 +11,19 @@
 - Interactivity should be enabled with redirect going to /interactive
 - Make a slash command (arbitary name) with request URL going to /commands
 - Add /events URL to events subscriptions and enable
+
+## Environment Variables
+You will need a .env file with the following
+```
+SLACK_SIGNING_SECRET=
+SLACK_TOKEN=
+
+
+JIRA_USERNAME=
+JIRA_PASSWORD=
+JIRA_SERVER=
+JIRA_PROJECT_KEY=TEST111
+ENABLE_JIRA_INTEGRATION=False
+```
+
+ENABLE_JIRA_INTEGRATION is used as a flag to enable/disable Jira integration.
