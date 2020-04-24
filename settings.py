@@ -11,6 +11,7 @@ def config_string_to_bool(setting):
     else:
         return False
 
+
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_TOKEN = os.environ["SLACK_TOKEN"]
 
