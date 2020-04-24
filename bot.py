@@ -163,16 +163,60 @@ def process_interactive():
 
         client.conversations_setTopic(channel=new_channel_id, topic=change_summary)
 
+        change_meta_field = [
+            {
+                "type": "mrkdwn",
+                "text": f"*Channel*\n<#{new_channel_id}>"
+            }
+        ]
+
         # Invite the original user into the channel
         client.conversations_invite(channel=new_channel_id, users=[user_id])
         jira_release_url = create_jira_release(change_number, user_name, change_summary)
-        jira_text = ""
+        jira_field = None
         if jira_release_url is not False:
-            jira_text = f"\n*Jira release:* <{jira_release_url}>"
+            change_meta_field.append({
+                "type": "mrkdwn",
+                "text": f"*Jira*\n<{jira_release_url}|C{change_number}>"
+            })
 
         client.chat_postMessage(
             channel="111-changes",
-            text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": ":bulb: New change created"
+                    }
+                },
+                {
+                    "type": "section",
+                    "block_id": "high_level_purpose",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*High level purpose*\n{change_summary}"
+                    }
+                },
+                {
+                    "type": "section",
+                    "block_id": "change_meta",
+                    "fields": change_meta_field
+                },
+                {
+                    "type": "section",
+                    "block_id": "creation_info",
+                    "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": f"*Creator*\n<@{user_id}>"
+                        }
+                    ]
+                },
+                {
+                    "type": "divider"
+                }
+            ]
         )
 
 
@@ -185,7 +229,8 @@ def process_interactive():
             content = release_notes,
             filename = f"Change {change_number}",
             filetype = "post",
-            channels = new_channel_id
+            channels = new_channel_id,
+            editable = True
         )
         file_timestamp = file_response["file"]["shares"]["public"][new_channel_id][0]["ts"]
         client.pins_add(channel=new_channel_id, timestamp=file_timestamp)
