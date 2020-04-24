@@ -108,6 +108,19 @@ def process_command():
                         "emoji": False,
                     },
                 },
+                {
+                    "type": "input",
+                    "block_id": "release_notes",
+                    "label": {
+                        "type": "plain_text",
+                        "text": "Release notes"
+                    },
+                    "element": {
+                        "type": "plain_text_input",
+                        "action_id": "txt_release_notes",
+                        "multiline": True,
+                    }
+                },
             ],
         },
     )
