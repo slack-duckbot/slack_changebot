@@ -219,22 +219,34 @@ def process_interactive():
             ]
         )
 
-
         # If release notes are given, add those to the post. Otherwise still add it as an empty post.
         release_notes = " "
         if "value" in state_values["release_notes"]["txt_release_notes"]:
             release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
 
         file_response = client.files_upload(
-            content = release_notes,
-            filename = f"Change {change_number}",
-            filetype = "post",
-            channels = new_channel_id
+            content=release_notes,
+            filename=f"Change {change_number}",
+            filetype="post",
+            channels=new_channel_id
         )
         file_timestamp = file_response["file"]["shares"]["public"][new_channel_id][0]["ts"]
         client.pins_add(channel=new_channel_id, timestamp=file_timestamp)
-        
+
+        # Invite the original user into the channel
+        client.conversations_invite(channel=new_channel_id, users=[user_id])
+        jira_release_url = create_jira_release(change_number, user_name, change_summary)
+        jira_text = ""
+        if jira_release_url is not False:
+            jira_text = f"\n*Jira release:* <{jira_release_url}>"
+
+        client.chat_postMessage(
+            channel="111-changes",
+            text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
+        )
+
         return make_response("", 200)
+
 
 @slack_events_adapter.on("channel_created")
 def channel_created(event_data):
