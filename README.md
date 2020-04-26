@@ -13,16 +13,21 @@
 - Add /events URL to events subscriptions and enable
 
 ## Environment Variables
-You will need a .env file with the following
+You will need a .env file with the following (you can use template.env to get you started)
 ```
+FLASK_APP=bot
+FLASK_ENV=development
+ENVIRONMENT_NAME=dev
+
 SLACK_SIGNING_SECRET=
 SLACK_TOKEN=
-
+SLACK_CHANGES_CHANNEL=#111-changes
+SLACK_CHANGE_CHANNEL_PREFIX=#111-change-
 
 JIRA_USERNAME=
 JIRA_PASSWORD=
 JIRA_SERVER=
-JIRA_PROJECT_KEY=TEST111
+JIRA_PROJECT_KEY=
 ENABLE_JIRA_INTEGRATION=False
 ```
 
