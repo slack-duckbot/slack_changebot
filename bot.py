@@ -171,23 +171,26 @@ def channel_created(event_data):
         logging.debug("Skipping duplicate request")
         return
 
+    # Get the name of the new channel, and the ID of the creator
+    channel_name = event_data["event"]["channel"]["name"]
     user_id = event_data["event"]["channel"]["creator"]
 
-    # channel_name is used to do logic via the name
-    channel_name = event_data["event"]["channel"]["name"]
-    
-    # channel_id is used to pass within slack messages instead of name
-    # so slack can handle private channels correctly.
-    channel_id = event_data["event"]["channel"]["id"]
-
+    # Get the creator's info via the Web API
     user = client.users_info(user=user_id)["user"]
-    username = user["name"]
 
-    # Only update channel on event when it was manually created
+    # Only notify a change when the channel was manually created by a human, to avoid picking up app creation events
     if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX) is True and user["is_bot"] is False:
+
+        # channel_id is used to pass within slack messages instead of name
+        # so slack can handle private channels correctly.
+        channel_id = event_data["event"]["channel"]["id"]
+        channel_info = client.channels_info(channel=channel_id)
+        channel_purpose = channel_info['channel']['purpose']['value']
+        username = user["name"]
+
         client.chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
-            text=f"<@{username}> manually created <#{channel_id}>",
+            text=f"<@{user_id}> manually created <#{channel_id}>\n>*{channel_purpose}*",
         )
 
     # Add the completed event_id to the REQUESTS set
