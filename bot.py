@@ -3,7 +3,7 @@ import logging
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
-import slack
+from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
 import settings
@@ -16,7 +16,7 @@ logging.getLogger("asyncio").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
-client = slack.WebClient(token=settings.SLACK_TOKEN)
+client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
 CHANGES = {}
@@ -127,7 +127,7 @@ def process_interactive():
         change_number = state_values["change_no"]["txt_change_no"]["value"]
         change_summary = state_values["change_summary"]["txt_change_summary"]["value"]
 
-        new_channel_name = f"111-change-{change_number}"
+        new_channel_name = f"{settings.SLACK_CHANGE_CHANNEL_PREFIX}{change_number}"
 
         # Check to see if channel already exists, return an error if so
         if does_channel_exist(new_channel_name):
@@ -156,11 +156,12 @@ def process_interactive():
             jira_text = f"\n*Jira release:* <{jira_release_url}>"
 
         client.chat_postMessage(
-            channel="111-changes",
+            channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
         )
 
         return make_response("", 200)
+
 
 @slack_events_adapter.on("channel_created")
 def channel_created(event_data):
@@ -183,9 +184,9 @@ def channel_created(event_data):
     username = user["name"]
 
     # Only update channel on event when it was manually created
-    if channel_name.startswith("111-change-") is True and user["is_bot"] is False:
+    if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX) is True and user["is_bot"] is False:
         client.chat_postMessage(
-            channel="111-changes",
+            channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"<@{username}> manually created <#{channel_id}>",
         )
 
