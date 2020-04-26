@@ -3,7 +3,7 @@ import logging
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
-import slack
+from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
 import settings
@@ -16,7 +16,7 @@ logging.getLogger("asyncio").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
-client = slack.WebClient(token=settings.SLACK_TOKEN)
+client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
 CHANGES = {}
