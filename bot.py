@@ -51,13 +51,6 @@ def does_channel_exist(channel_name):
         return False
 
 
-def get_conversation_info(conversation_id):
-    print(conversation_id)
-    info = client.conversations_info(conversation_id)
-    print(info)
-    return info
-
-
 @app.route("/commands", methods=["POST"])
 def process_command():
     logging.debug(request.form["command"])
