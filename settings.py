@@ -14,6 +14,8 @@ def config_string_to_bool(setting):
 
 SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_TOKEN = os.environ["SLACK_TOKEN"]
+SLACK_CHANGES_CHANNEL = os.environ["SLACK_CHANGES_CHANNEL"]
+SLACK_CHANGE_CHANNEL_PREFIX = os.environ["SLACK_CHANGE_CHANNEL_PREFIX"]
 
 # Jira configuration
 JIRA_USERNAME = os.environ["JIRA_USERNAME"]
@@ -23,3 +25,4 @@ JIRA_PROJECT_KEY = os.environ["JIRA_PROJECT_KEY"]
 
 # Feature toggles
 ENABLE_JIRA_INTEGRATION = config_string_to_bool(os.environ["ENABLE_JIRA_INTEGRATION"])
+
