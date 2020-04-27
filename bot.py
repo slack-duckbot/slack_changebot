@@ -52,6 +52,11 @@ def does_channel_exist(channel_name):
         return False
 
 
+@app.route("/heartbeat", methods=["GET"])
+def heartbeat():
+    return make_response("", 200)
+
+
 @app.route("/commands", methods=["POST"])
 def process_command():
     logging.debug(request.form["command"])
