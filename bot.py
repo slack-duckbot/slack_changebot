@@ -17,6 +17,11 @@ logging.getLogger("asyncio").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
+
+def get_slack_client():
+    return WebClient(token=settings.SLACK_TOKEN)
+
+
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
@@ -148,20 +153,20 @@ def process_interactive():
         new_channel = client.conversations_create(name=new_channel_name)
         new_channel_id = new_channel["channel"]["id"]
 
-        client.conversations_setPurpose(
+        get_slack_client().conversations_setPurpose(
             channel=new_channel_id, purpose=change_summary
         )
 
-        client.conversations_setTopic(channel=new_channel_id, topic=change_summary)
+        get_slack_client().conversations_setTopic(channel=new_channel_id, topic=change_summary)
 
         # Invite the original user into the channel
-        client.conversations_invite(channel=new_channel_id, users=[user_id])
+        get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
         jira_release_url = create_jira_release(change_number, user_name, change_summary)
         jira_text = ""
         if jira_release_url is not False:
             jira_text = f"\n*Jira release:* <{jira_release_url}>"
 
-        client.chat_postMessage(
+        get_slack_client().chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"<@{user_id}> created <#{new_channel_id}>\n>*{change_summary}*{jira_text}",
         )
