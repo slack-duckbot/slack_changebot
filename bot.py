@@ -263,7 +263,7 @@ def channel_renamed(event_data):
 
         get_slack_client().chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
-            text=f"Channel renamed to <#{channel_id}>\n>*{channel_purpose}*",
+            text=f"Channel renamed to *#{channel_name}* (<#{channel_id}>)\n>*{channel_purpose}*",
         )
 
         # Add the completed event_id to the REQUESTS set
