@@ -71,7 +71,6 @@ def process_command():
     user_id = request.form["user_id"]
     trigger_id = request.form["trigger_id"]
 
-    # Add the message_ts to the user's order info
     view_open = client.views_open(
         trigger_id=trigger_id,
         view={
