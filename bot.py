@@ -4,8 +4,7 @@ import datetime
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
-import redis
-import rq
+
 from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
@@ -15,6 +14,7 @@ from view_edit_change import show_view_edit_change
 from slack_helpers import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
 from feature_release_notes import post_release_notes
+from helpers_redis import request_previously_responded, request_processed
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
@@ -26,21 +26,8 @@ app = Flask(__name__)
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
-# Set up a redis connection to be used for the async worker queue
-redis_q_conn = redis.from_url(settings.REDIS_URL, db=0)
-redis_q = rq.Queue(connection=redis_q_conn)
+
 CHANGES = {}
-
-# Set up a redis connection to db 1 to be used for de-duplicating inbound requests
-redis_conn = redis.from_url(settings.REDIS_URL, db=1)
-
-
-def request_processed(event_id):
-    redis_conn.set(event_id, "")
-
-
-def request_previously_responded(event_id):
-    redis_conn.get(event_id)
 
 
 @app.route("/heartbeat", methods=["GET"])
