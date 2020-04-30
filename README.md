@@ -38,15 +38,21 @@ ENABLE_JIRA_INTEGRATION is used as a flag to enable/disable Jira integration.
 
 ## Background Workers
 
-This app makes use of the `rq` library to put async jobs onto a background worker queue.
+This app makes use of the *rq* library to put async jobs onto a background worker queue.
 
 The worker queue is stored in Redis, so you will need a Redis instance available to run the app.
 
 The Redis connection details are set in an environment variable e.g.
 
-`REDIS_URL=redis://localhost:6379`
+`export REDIS_URL=redis://localhost:6379`
 
 ### Running a background worker
 To run a background worker, use the command `rq worker` (will default to `redis://localhost:6379` connection)
 
 To specify a different connection URL, use `rq worker --url redis://user:secrets@a.different.host:1234/0`
+
+### Running a local instance of Redis using Docker
+
+If you have Docker installed, you can spin up a simple Redis container 
+
+`docker run --name changebot-redis -d -p 6379:6379 redis`
