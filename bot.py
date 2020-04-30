@@ -27,10 +27,6 @@ app = Flask(__name__)
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
-# Set up a redis connection to be used for the async queue
-redis_q_conn = redis.from_url(settings.REDIS_URL, db=0)
-redis_q = rq.Queue(connection=redis_q_conn)
-
 CHANGES = {}
 
 
