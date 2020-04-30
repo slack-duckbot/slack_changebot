@@ -175,8 +175,6 @@ def process_interactive():
             }
         ]
 
-        # Invite the original user into the channel
-        client.conversations_invite(channel=new_channel_id, users=[user_id])
         jira_release_url = create_jira_release(change_number, user_name, change_summary)
         jira_field = None
         if jira_release_url is not False:
@@ -187,69 +185,7 @@ def process_interactive():
 
         client.chat_postMessage(
             channel="111-changes",
-            blocks=[
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":bulb: New change created"
-                    }
-                },
-                {
-                    "type": "section",
-                    "block_id": "high_level_purpose",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"*High level purpose*\n{change_summary}"
-                    }
-                },
-                {
-                    "type": "section",
-                    "block_id": "change_meta",
-                    "fields": change_meta_field
-                },
-                {
-                    "type": "section",
-                    "block_id": "creation_info",
-                    "fields": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Creator*\n<@{user_id}>"
-                        }
-                    ]
-                },
-                {
-                    "type": "divider"
-                }
-            ]
-        )
-
-        # If release notes are given, add those to the post. Otherwise still add it as an empty post.
-        release_notes = " "
-        if "value" in state_values["release_notes"]["txt_release_notes"]:
-            release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
-
-        file_response = client.files_upload(
-            content=release_notes,
-            filename=f"Change {change_number}",
-            filetype="post",
-            channels=new_channel_id
-        )
-        file_timestamp = file_response["file"]["shares"]["public"][new_channel_id][0]["ts"]
-        client.pins_add(channel=new_channel_id, timestamp=file_timestamp)
-
-        # Invite the original user into the channel
-        client.conversations_invite(channel=new_channel_id, users=[user_id])
-        jira_release_url = create_jira_release(change_number, user_name, change_summary)
-        jira_field = None
-        if jira_release_url is not False:
-            change_meta_field.append({
-                "type": "mrkdwn",
-                "text": f"*Jira*\n<{jira_release_url}|C{change_number}>"
-            })
-
-        client.chat_postMessage(
-            channel="111-changes",
+            text=f"Change {change_number} created by <@{user_id}>",
             blocks=[
                 {
                     "type": "section",
@@ -293,15 +229,77 @@ def process_interactive():
         if "value" in state_values["release_notes"]["txt_release_notes"]:
             release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
 
-        file_response = client.files_upload(
-            content = release_notes,
-            filename = f"Change {change_number}",
-            filetype = "post",
-            channels = new_channel_id
+
+        release_notes_post = client.chat_postMessage(
+            channel=new_channel_id,
+            blocks=[
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*Description of change*"
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": {change_summary},
+                        "emoji": True
+                    },
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Edit"
+                        },
+                        "value": "btn_edit_rns"
+                    }
+                },
+                {
+                    "type": "divider"
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": f"*Release notes - Change {change_number}*"
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": release_notes
+                    },
+                    "accessory": {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": "Edit"
+                        },
+                        "value": "edit_release_notes"
+                    }
+                },
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "Last updated: Jan 1, 2019 by mattstibbs"
+                        }
+                    ]
+                }
+            ]
         )
-        file_timestamp = file_response["file"]["shares"]["public"][new_channel_id][0]["ts"]
-        client.pins_add(channel=new_channel_id, timestamp=file_timestamp)
         
+
+        logging.debug("Release Notes Post: " + release_notes_post)
+        #client.pins_add(channel=new_channel_id, timestamp=release_notes_post["ts"])
+        
+        # Invite the original user into the channel, after release notes created so they don't get an alert
+        client.conversations_invite(channel=new_channel_id, users=[user_id])
+
         return make_response("", 200)
 
 
