@@ -8,7 +8,11 @@ from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
 import settings
+from view_create_change import show_view_create_change
+from view_edit_change import show_view_edit_change
+from slack_helpers import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
+from feature_release_notes import post_release_notes
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
@@ -17,11 +21,6 @@ logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
-
-def get_slack_client():
-    return WebClient(token=settings.SLACK_TOKEN)
-
-
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
@@ -29,33 +28,6 @@ CHANGES = {}
 
 # Create a set which will provide simple idempotency support for event callbacks
 REQUESTS = set()
-
-
-def get_user_list():
-    response = client.users_list()
-
-    members = response["members"]
-    user_ids = []
-
-    for member in members:
-        user = {"user_id": member["id"], "name": member["name"]}
-        user_ids.append(user)
-
-    return user_ids
-
-
-def does_channel_exist(channel_name):
-    response = client.channels_list()
-
-    channels = response["channels"]
-
-    results = [channel for channel in channels if channel["name"] == channel_name]
-    print(results)
-    if len(results) > 0:
-        return True
-    else:
-        return False
-
 
 @app.route("/heartbeat", methods=["GET"])
 def heartbeat():
@@ -71,66 +43,7 @@ def process_command():
     user_id = request.form["user_id"]
     trigger_id = request.form["trigger_id"]
 
-    view_open = client.views_open(
-        trigger_id=trigger_id,
-        view={
-            "type": "modal",
-            "callback_id": "create_change_modal",
-            "title": {
-                "type": "plain_text",
-                "text": "Create change channel",
-                "emoji": True,
-            },
-            "submit": {"type": "plain_text", "text": "Create", "emoji": True},
-            "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
-            "blocks": [
-                {
-                    "type": "input",
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "txt_change_no",
-                        "multiline": False,
-                    },
-                    "block_id": "change_no",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Change Number",
-                        "emoji": False,
-                    },
-                },
-                {
-                    "type": "input",
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "txt_change_summary",
-                        "multiline": False,
-                    },
-                    "block_id": "change_summary",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Summary of change",
-                        "emoji": False,
-                    },
-                },
-                {
-                    "type": "input",
-                    "block_id": "release_notes",
-                    "optional": True,
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Release notes"
-                    },
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "txt_release_notes",
-                        "multiline": True,
-                    }
-                },
-            ],
-        },
-    )
-
-    print(view_open["view"]["id"])
+    show_view_create_change(trigger_id)
 
     return make_response("", 200)
 
@@ -143,165 +56,114 @@ def process_interactive():
     message_payload = json.loads(request.form["payload"])
     user_id = message_payload["user"]["id"]
     user_name = message_payload["user"]["name"]
+    trigger_id = message_payload["trigger_id"]
+
+    if message_payload["type"] == "block_actions":
+        change_summary = message_payload["message"]["blocks"][1]["text"]["text"]
+        release_notes = message_payload["message"]["blocks"][4]["text"]["text"]
+        ts = message_payload["message"]["ts"]
+        show_view_edit_change(trigger_id, change_summary, release_notes, ts)
 
     if message_payload["type"] == "view_submission":
+        callback_id = message_payload["view"]["callback_id"]
 
-        state_values = message_payload["view"]["state"]["values"]
+        if callback_id == "edit_change_modal":
+            state_values = message_payload["view"]["state"]["values"]
 
-        change_number = state_values["change_no"]["txt_change_no"]["value"]
-        change_summary = state_values["change_summary"]["txt_change_summary"]["value"]
+            change_summary = state_values["change_summary"]["txt_change_summary"]["value"]
+            release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
+            timestamp = state_values["release_notes"]["txt_release_notes"]["value"]
+            logging.debug(state_values)
+            # get_slack_client().chat_update()
 
-        new_channel_name = f"{settings.SLACK_CHANGE_CHANNEL_PREFIX}{change_number}"
+        if callback_id == "create_change_modal":
 
-        # Check to see if channel already exists, return an error if so
-        if does_channel_exist(new_channel_name):
+            state_values = message_payload["view"]["state"]["values"]
 
-            return jsonify(
-                {"response_action": "errors",
-                 "errors": {"change_no": "A channel already exists with this change number"}
-                }
+            change_number = state_values["change_no"]["txt_change_no"]["value"]
+            change_summary = state_values["change_summary"]["txt_change_summary"]["value"]
+
+            new_channel_name = f"{settings.SLACK_CHANGE_CHANNEL_PREFIX}{change_number}"
+
+            # Check to see if channel already exists, return an error if so
+            if does_channel_exist(new_channel_name):
+
+                return jsonify(
+                    {"response_action": "errors",
+                    "errors": {"change_no": "A channel already exists with this change number"}
+                    }
+                )
+
+            # Create the new channel and set purpose / topic
+            new_channel = client.conversations_create(name=new_channel_name)
+            new_channel_id = new_channel["channel"]["id"]
+
+            get_slack_client().conversations_setPurpose(
+                channel=new_channel_id, purpose=change_summary
             )
 
-        # Create the new channel and set purpose / topic
-        new_channel = client.conversations_create(name=new_channel_name)
-        new_channel_id = new_channel["channel"]["id"]
+            get_slack_client().conversations_setTopic(channel=new_channel_id, topic=change_summary)
 
-        get_slack_client().conversations_setPurpose(
-            channel=new_channel_id, purpose=change_summary
-        )
-
-        get_slack_client().conversations_setTopic(channel=new_channel_id, topic=change_summary)
-
-        change_meta_field = [
-            {
-                "type": "mrkdwn",
-                "text": f"*Channel*\n<#{new_channel_id}>"
-            }
-        ]
-
-        jira_release_url = create_jira_release(change_number, user_name, change_summary)
-        jira_field = None
-        if jira_release_url is not False:
-            change_meta_field.append({
-                "type": "mrkdwn",
-                "text": f"*Jira*\n<{jira_release_url}|C{change_number}>"
-            })
-
-        get_slack_client().chat_postMessage(
-            channel=settings.SLACK_CHANGES_CHANNEL,
-            text=f"Change {change_number} created by <@{user_id}>",
-            blocks=[
+            change_meta_field = [
                 {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": ":bulb: New change created"
-                    }
-                },
-                {
-                    "type": "section",
-                    "block_id": "high_level_purpose",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"*High level purpose*\n{change_summary}"
-                    }
-                },
-                {
-                    "type": "section",
-                    "block_id": "change_meta",
-                    "fields": change_meta_field
-                },
-                {
-                    "type": "section",
-                    "block_id": "creation_info",
-                    "fields": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"*Creator*\n<@{user_id}>"
-                        }
-                    ]
-                },
-                {
-                    "type": "divider"
+                    "type": "mrkdwn",
+                    "text": f"*Channel*\n<#{new_channel_id}>"
                 }
             ]
-        )
 
-        # # If release notes are given, add those to the post. Otherwise still add it as an empty post.
-        release_notes = " "
-        if "value" in state_values["release_notes"]["txt_release_notes"]:
-            release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
+            jira_release_url = create_jira_release(change_number, user_name, change_summary)
+            jira_field = None
+            if jira_release_url is not False:
+                change_meta_field.append({
+                    "type": "mrkdwn",
+                    "text": f"*Jira*\n<{jira_release_url}|C{change_number}>"
+                })
 
-        last_updated = datetime.datetime.today().strftime("%b %d, %Y at %I:%M%p")
-
-        release_notes_post = get_slack_client().chat_postMessage(
-            channel=new_channel_name,
-            blocks=[
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*Description of change*"
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": change_summary,
-                        "emoji": True
-                    },
-                    "accessory": {
-                        "type": "button",
+            get_slack_client().chat_postMessage(
+                channel=settings.SLACK_CHANGES_CHANNEL,
+                text=f"Change {change_number} created by <@{user_id}>",
+                blocks=[
+                    {
+                        "type": "section",
                         "text": {
-                            "type": "plain_text",
-                            "text": "Edit"
-                        },
-                        "value": "btn_edit_rns"
-                    }
-                },
-                {
-                    "type": "divider"
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": f"*Release notes - Change {change_number}*"
-                    }
-                },
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": release_notes
-                    },
-                    "accessory": {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "Edit"
-                        },
-                        "value": "edit_release_notes"
-                    }
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
                             "type": "mrkdwn",
-                            "text": f"Last updated: { last_updated } by <@{user_id}>"
+                            "text": ":bulb: New change created"
                         }
-                    ]
-                }
-            ]
-        )
-        
+                    },
+                    {
+                        "type": "section",
+                        "block_id": "high_level_purpose",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"*High level purpose*\n{change_summary}"
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "block_id": "change_meta",
+                        "fields": change_meta_field
+                    },
+                    {
+                        "type": "section",
+                        "block_id": "creation_info",
+                        "fields": [
+                            {
+                                "type": "mrkdwn",
+                                "text": f"*Creator*\n<@{user_id}>"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "divider"
+                    }
+                ]
+            )
 
-        client.pins_add(channel=new_channel_id, timestamp=release_notes_post["ts"])
-        
-        # Invite the original user into the channel, after release notes created so they don't get an alert
-        get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
+            if settings.ENABLE_RELEASE_NOTES: 
+                post_release_notes(state_values, new_channel_name, new_channel_id, change_number, change_summary, user_id)
+            
+            # Invite the original user into the channel, after release notes created so they don't get an alert
+            get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
 
         return make_response("", 200)
 
