@@ -29,6 +29,7 @@ CHANGES = {}
 # Create a set which will provide simple idempotency support for event callbacks
 REQUESTS = set()
 
+
 @app.route("/heartbeat", methods=["GET"])
 def heartbeat():
     return make_response("", 200)
@@ -70,7 +71,9 @@ def process_interactive():
         if callback_id == "edit_change_modal":
             state_values = message_payload["view"]["state"]["values"]
 
-            change_summary = state_values["change_summary"]["txt_change_summary"]["value"]
+            change_summary = state_values["change_summary"]["txt_change_summary"][
+                "value"
+            ]
             release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
             timestamp = state_values["release_notes"]["txt_release_notes"]["value"]
             logging.debug(state_values)
@@ -81,7 +84,9 @@ def process_interactive():
             state_values = message_payload["view"]["state"]["values"]
 
             change_number = state_values["change_no"]["txt_change_no"]["value"]
-            change_summary = state_values["change_summary"]["txt_change_summary"]["value"]
+            change_summary = state_values["change_summary"]["txt_change_summary"][
+                "value"
+            ]
 
             new_channel_name = f"{settings.SLACK_CHANGE_CHANNEL_PREFIX}{change_number}"
 
@@ -89,8 +94,11 @@ def process_interactive():
             if does_channel_exist(new_channel_name):
 
                 return jsonify(
-                    {"response_action": "errors",
-                    "errors": {"change_no": "A channel already exists with this change number"}
+                    {
+                        "response_action": "errors",
+                        "errors": {
+                            "change_no": "A channel already exists with this change number"
+                        },
                     }
                 )
 
@@ -102,22 +110,25 @@ def process_interactive():
                 channel=new_channel_id, purpose=change_summary
             )
 
-            get_slack_client().conversations_setTopic(channel=new_channel_id, topic=change_summary)
+            get_slack_client().conversations_setTopic(
+                channel=new_channel_id, topic=change_summary
+            )
 
             change_meta_field = [
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Channel*\n<#{new_channel_id}>"
-                }
+                {"type": "mrkdwn", "text": f"*Channel*\n<#{new_channel_id}>"}
             ]
 
-            jira_release_url = create_jira_release(change_number, user_name, change_summary)
+            jira_release_url = create_jira_release(
+                change_number, user_name, change_summary
+            )
             jira_field = None
             if jira_release_url is not False:
-                change_meta_field.append({
-                    "type": "mrkdwn",
-                    "text": f"*Jira*\n<{jira_release_url}|C{change_number}>"
-                })
+                change_meta_field.append(
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Jira*\n<{jira_release_url}|C{change_number}>",
+                    }
+                )
 
             get_slack_client().chat_postMessage(
                 channel=settings.SLACK_CHANGES_CHANNEL,
@@ -125,45 +136,46 @@ def process_interactive():
                 blocks=[
                     {
                         "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": ":bulb: New change created"
-                        }
+                        "text": {"type": "mrkdwn", "text": ":bulb: New change created"},
                     },
                     {
                         "type": "section",
                         "block_id": "high_level_purpose",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*High level purpose*\n{change_summary}"
-                        }
+                            "text": f"*High level purpose*\n{change_summary}",
+                        },
                     },
                     {
                         "type": "section",
                         "block_id": "change_meta",
-                        "fields": change_meta_field
+                        "fields": change_meta_field,
                     },
                     {
                         "type": "section",
                         "block_id": "creation_info",
                         "fields": [
-                            {
-                                "type": "mrkdwn",
-                                "text": f"*Creator*\n<@{user_id}>"
-                            }
-                        ]
+                            {"type": "mrkdwn", "text": f"*Creator*\n<@{user_id}>"}
+                        ],
                     },
-                    {
-                        "type": "divider"
-                    }
-                ]
+                    {"type": "divider"},
+                ],
             )
 
-            if settings.ENABLE_RELEASE_NOTES: 
-                post_release_notes(state_values, new_channel_name, new_channel_id, change_number, change_summary, user_id)
-            
+            if settings.ENABLE_RELEASE_NOTES:
+                post_release_notes(
+                    state_values,
+                    new_channel_name,
+                    new_channel_id,
+                    change_number,
+                    change_summary,
+                    user_id,
+                )
+
             # Invite the original user into the channel, after release notes created so they don't get an alert
-            get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
+            get_slack_client().conversations_invite(
+                channel=new_channel_id, users=[user_id]
+            )
 
         return make_response("", 200)
 
@@ -178,7 +190,9 @@ def channel_created(event_data):
     channel_id = event_data["event"]["channel"]["id"]
     channel_name = event_data["event"]["channel"]["name"]
 
-    log_entry["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    log_entry["timestamp"] = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
     log_entry["event"] = "channel_created"
     log_entry["eventId"] = event_id
     log_entry["channelId"] = channel_id
@@ -198,12 +212,15 @@ def channel_created(event_data):
         return
 
     # Only notify a change when the channel was manually created by a human, to avoid picking up app creation events
-    if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX) is True and user["is_bot"] is False:
+    if (
+        channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX) is True
+        and user["is_bot"] is False
+    ):
 
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
         channel_info = client.channels_info(channel=channel_id)
-        channel_purpose = channel_info['channel']['purpose']['value']
+        channel_purpose = channel_info["channel"]["purpose"]["value"]
 
         client.chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
@@ -235,7 +252,9 @@ def channel_renamed(event_data):
     channel_id = event_data["event"]["channel"]["id"]
     channel_name = event_data["event"]["channel"]["name"]
 
-    log_entry["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    log_entry["timestamp"] = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
     log_entry["event"] = "channel_renamed"
     log_entry["eventId"] = event_id
     log_entry["channelId"] = channel_id
@@ -253,7 +272,7 @@ def channel_renamed(event_data):
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
         channel_info = get_slack_client().channels_info(channel=channel_id)
-        channel_purpose = channel_info['channel']['purpose']['value']
+        channel_purpose = channel_info["channel"]["purpose"]["value"]
 
         get_slack_client().chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
