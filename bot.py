@@ -17,6 +17,11 @@ logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
+
+def get_slack_client():
+    return WebClient(token=settings.SLACK_TOKEN)
+
+
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
@@ -66,7 +71,6 @@ def process_command():
     user_id = request.form["user_id"]
     trigger_id = request.form["trigger_id"]
 
-    # Add the message_ts to the user's order info
     view_open = client.views_open(
         trigger_id=trigger_id,
         view={
@@ -162,11 +166,11 @@ def process_interactive():
         new_channel = client.conversations_create(name=new_channel_name)
         new_channel_id = new_channel["channel"]["id"]
 
-        client.conversations_setPurpose(
+        get_slack_client().conversations_setPurpose(
             channel=new_channel_id, purpose=change_summary
         )
 
-        client.conversations_setTopic(channel=new_channel_id, topic=change_summary)
+        get_slack_client().conversations_setTopic(channel=new_channel_id, topic=change_summary)
 
         change_meta_field = [
             {
@@ -183,8 +187,8 @@ def process_interactive():
                 "text": f"*Jira*\n<{jira_release_url}|C{change_number}>"
             })
 
-        client.chat_postMessage(
-            channel="111-changes",
+        get_slack_client().chat_postMessage(
+            channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"Change {change_number} created by <@{user_id}>",
             blocks=[
                 {
@@ -230,7 +234,7 @@ def process_interactive():
             release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
 
 
-        release_notes_post = client.chat_postMessage(
+        release_notes_post = get_slack_client().chat_postMessage(
             channel=new_channel_id,
             blocks=[
                 {
@@ -298,7 +302,7 @@ def process_interactive():
         #client.pins_add(channel=new_channel_id, timestamp=release_notes_post["ts"])
         
         # Invite the original user into the channel, after release notes created so they don't get an alert
-        client.conversations_invite(channel=new_channel_id, users=[user_id])
+        get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
 
         return make_response("", 200)
 
@@ -314,6 +318,7 @@ def channel_created(event_data):
     channel_name = event_data["event"]["channel"]["name"]
 
     log_entry["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    log_entry["event"] = "channel_created"
     log_entry["eventId"] = event_id
     log_entry["channelId"] = channel_id
     log_entry["channelName"] = channel_name
@@ -342,6 +347,56 @@ def channel_created(event_data):
         client.chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"<@{user_id}> manually created <#{channel_id}>\n>*{channel_purpose}*",
+        )
+
+        # Add the completed event_id to the REQUESTS set
+        REQUESTS.add(event_id)
+
+        log_entry["requestOutcome"] = "Relevant-Completed"
+        logging.debug(json.dumps(log_entry))
+
+        return
+
+    # Add the completed event_id to the REQUESTS set
+    REQUESTS.add(event_id)
+
+    log_entry["requestOutcome"] = "Irrelevant-Responded"
+    logging.debug(json.dumps(log_entry))
+
+
+@slack_events_adapter.on("channel_rename")
+def channel_renamed(event_data):
+    log_entry = {}
+
+    event_id = event_data["event_id"]
+
+    # Get the name of the new channel, and the ID of the creator
+    channel_id = event_data["event"]["channel"]["id"]
+    channel_name = event_data["event"]["channel"]["name"]
+
+    log_entry["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    log_entry["event"] = "channel_renamed"
+    log_entry["eventId"] = event_id
+    log_entry["channelId"] = channel_id
+    log_entry["channelName"] = channel_name
+
+    if event_id in REQUESTS:
+        logging.debug("Skipping duplicate request")
+        log_entry["requestOutcome"] = "Duplicate-Responded"
+        logging.debug(json.dumps(log_entry))
+        return
+
+    # Only notify a change when the channel was manually created by a human, to avoid picking up app creation events
+    if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX):
+
+        # channel_id is used to pass within slack messages instead of name
+        # so slack can handle private channels correctly.
+        channel_info = get_slack_client().channels_info(channel=channel_id)
+        channel_purpose = channel_info['channel']['purpose']['value']
+
+        get_slack_client().chat_postMessage(
+            channel=settings.SLACK_CHANGES_CHANNEL,
+            text=f"Channel renamed to *#{channel_name}* (<#{channel_id}>)\n>*{channel_purpose}*",
         )
 
         # Add the completed event_id to the REQUESTS set
