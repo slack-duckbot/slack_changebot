@@ -4,8 +4,7 @@ import datetime
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
-import redis
-import rq
+
 from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
