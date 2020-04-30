@@ -7,6 +7,7 @@ from flask import request, make_response
 from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
+from slack_helpers import get_next_change_number
 import settings
 from feature_jira import create_jira_release
 
@@ -65,60 +66,71 @@ def heartbeat():
 @app.route("/commands", methods=["POST"])
 def process_command():
     logging.debug(request.form["command"])
-    logging.debug(request.form["text"])
+    command = request.form["text"]
+    logging.debug(command)
     logging.debug(request.form)
 
     user_id = request.form["user_id"]
     trigger_id = request.form["trigger_id"]
 
-    view_open = client.views_open(
-        trigger_id=trigger_id,
-        view={
-            "type": "modal",
-            "callback_id": "create_change_modal",
-            "title": {
-                "type": "plain_text",
-                "text": "Create change channel",
-                "emoji": True,
+    if command == "new":
+        view_open = client.views_open(
+            trigger_id=trigger_id,
+            view={
+                "type": "modal",
+                "callback_id": "create_change_modal",
+                "title": {
+                    "type": "plain_text",
+                    "text": "Create change channel",
+                    "emoji": True,
+                },
+                "submit": {"type": "plain_text", "text": "Create", "emoji": True},
+                "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
+                "blocks": [
+                    {
+                        "type": "input",
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "txt_change_no",
+                            "multiline": False,
+                        },
+                        "block_id": "change_no",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Change Number",
+                            "emoji": False,
+                        },
+                    },
+                    {
+                        "type": "input",
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "txt_change_summary",
+                            "multiline": False,
+                        },
+                        "block_id": "change_summary",
+                        "label": {
+                            "type": "plain_text",
+                            "text": "Summary of change",
+                            "emoji": False,
+                        },
+                    },
+                ],
             },
-            "submit": {"type": "plain_text", "text": "Create", "emoji": True},
-            "close": {"type": "plain_text", "text": "Cancel", "emoji": True},
-            "blocks": [
-                {
-                    "type": "input",
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "txt_change_no",
-                        "multiline": False,
-                    },
-                    "block_id": "change_no",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Change Number",
-                        "emoji": False,
-                    },
-                },
-                {
-                    "type": "input",
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "txt_change_summary",
-                        "multiline": False,
-                    },
-                    "block_id": "change_summary",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Summary of change",
-                        "emoji": False,
-                    },
-                },
-            ],
-        },
-    )
+        )
 
-    print(view_open["view"]["id"])
+        print(view_open["view"]["id"])
 
-    return make_response("", 200)
+        return make_response("", 200)
+
+    elif command == "next":
+        next_change_number = get_next_change_number()
+        return make_response(
+            f"The next available change number is: *{next_change_number}*", 200
+        )
+
+    else:
+        return make_response(f"*{command}* command is not supported currently.", 200)
 
 
 @app.route("/interactive", methods=["POST"])
@@ -143,8 +155,11 @@ def process_interactive():
         if does_channel_exist(new_channel_name):
 
             return jsonify(
-                {"response_action": "errors",
-                 "errors": {"change_no": "A channel already exists with this change number"}
+                {
+                    "response_action": "errors",
+                    "errors": {
+                        "change_no": "A channel already exists with this change number"
+                    },
                 }
             )
 
@@ -156,7 +171,9 @@ def process_interactive():
             channel=new_channel_id, purpose=change_summary
         )
 
-        get_slack_client().conversations_setTopic(channel=new_channel_id, topic=change_summary)
+        get_slack_client().conversations_setTopic(
+            channel=new_channel_id, topic=change_summary
+        )
 
         # Invite the original user into the channel
         get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
@@ -183,7 +200,9 @@ def channel_created(event_data):
     channel_id = event_data["event"]["channel"]["id"]
     channel_name = event_data["event"]["channel"]["name"]
 
-    log_entry["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    log_entry["timestamp"] = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
     log_entry["event"] = "channel_created"
     log_entry["eventId"] = event_id
     log_entry["channelId"] = channel_id
@@ -203,12 +222,15 @@ def channel_created(event_data):
         return
 
     # Only notify a change when the channel was manually created by a human, to avoid picking up app creation events
-    if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX) is True and user["is_bot"] is False:
+    if (
+        channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX) is True
+        and user["is_bot"] is False
+    ):
 
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
         channel_info = client.channels_info(channel=channel_id)
-        channel_purpose = channel_info['channel']['purpose']['value']
+        channel_purpose = channel_info["channel"]["purpose"]["value"]
 
         client.chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
@@ -240,7 +262,9 @@ def channel_renamed(event_data):
     channel_id = event_data["event"]["channel"]["id"]
     channel_name = event_data["event"]["channel"]["name"]
 
-    log_entry["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    log_entry["timestamp"] = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
     log_entry["event"] = "channel_renamed"
     log_entry["eventId"] = event_id
     log_entry["channelId"] = channel_id
@@ -258,7 +282,7 @@ def channel_renamed(event_data):
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
         channel_info = get_slack_client().channels_info(channel=channel_id)
-        channel_purpose = channel_info['channel']['purpose']['value']
+        channel_purpose = channel_info["channel"]["purpose"]["value"]
 
         get_slack_client().chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
