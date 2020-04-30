@@ -25,4 +25,3 @@ JIRA_PROJECT_KEY = os.environ["JIRA_PROJECT_KEY"]
 
 # Feature toggles
 ENABLE_JIRA_INTEGRATION = config_string_to_bool(os.environ["ENABLE_JIRA_INTEGRATION"])
-
