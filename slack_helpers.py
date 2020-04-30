@@ -1,6 +1,7 @@
 from slack import WebClient
 from settings import SLACK_TOKEN
 
+
 def get_slack_client():
     return WebClient(token=SLACK_TOKEN)
 
