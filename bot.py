@@ -22,7 +22,6 @@ logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
 app = Flask(__name__)
 
-client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
 CHANGES = {}
@@ -114,7 +113,7 @@ def process_interactive():
                 )
 
             # Create the new channel and set purpose / topic
-            new_channel = client.conversations_create(name=new_channel_name)
+            new_channel = get_slack_client().conversations_create(name=new_channel_name)
             new_channel_id = new_channel["channel"]["id"]
 
             get_slack_client().conversations_setPurpose(
@@ -211,7 +210,7 @@ def channel_created(event_data):
 
     # Get the creator's info via the Web API
     user_id = event_data["event"]["channel"]["creator"]
-    user = client.users_info(user=user_id)["user"]
+    user = get_slack_client().users_info(user=user_id)["user"]
     username = user["name"]
     log_entry["userId"] = user_id
     log_entry["username"] = username
@@ -230,10 +229,10 @@ def channel_created(event_data):
 
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
-        channel_info = client.channels_info(channel=channel_id)
+        channel_info = get_slack_client().channels_info(channel=channel_id)
         channel_purpose = channel_info["channel"]["purpose"]["value"]
 
-        client.chat_postMessage(
+        get_slack_client().chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"<@{user_id}> manually created <#{channel_id}>\n>*{channel_purpose}*",
         )
