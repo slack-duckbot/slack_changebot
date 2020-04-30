@@ -4,6 +4,8 @@ import datetime
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
+import redis
+import rq
 from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
@@ -24,6 +26,9 @@ app = Flask(__name__)
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
+# Set up a redis connection to be used for the async queue
+redis_q_conn = redis.from_url(settings.REDIS_URL, db=0)
+redis_q = rq.Queue(connection=redis_q_conn)
 CHANGES = {}
 
 # Create a set which will provide simple idempotency support for event callbacks
@@ -106,12 +111,16 @@ def process_interactive():
             new_channel = client.conversations_create(name=new_channel_name)
             new_channel_id = new_channel["channel"]["id"]
 
-            get_slack_client().conversations_setPurpose(
-                channel=new_channel_id, purpose=change_summary
+            redis_q.enqueue(
+                get_slack_client().conversations_setPurpose,
+                channel=new_channel_id,
+                purpose=change_summary,
             )
 
-            get_slack_client().conversations_setTopic(
-                channel=new_channel_id, topic=change_summary
+            redis_q.enqueue(
+                get_slack_client().conversations_setTopic,
+                channel=new_channel_id,
+                topic=change_summary,
             )
 
             change_meta_field = [
@@ -130,7 +139,8 @@ def process_interactive():
                     }
                 )
 
-            get_slack_client().chat_postMessage(
+            redis_q.enqueue(
+                get_slack_client().chat_postMessage,
                 channel=settings.SLACK_CHANGES_CHANNEL,
                 text=f"Change {change_number} created by <@{user_id}>",
                 blocks=[
@@ -163,7 +173,8 @@ def process_interactive():
             )
 
             if settings.ENABLE_RELEASE_NOTES:
-                post_release_notes(
+                redis_q.enqueue(
+                    post_release_notes,
                     state_values,
                     new_channel_name,
                     new_channel_id,
@@ -173,8 +184,10 @@ def process_interactive():
                 )
 
             # Invite the original user into the channel, after release notes created so they don't get an alert
-            get_slack_client().conversations_invite(
-                channel=new_channel_id, users=[user_id]
+            redis_q.enqueue(
+                get_slack_client().conversations_invite,
+                channel=new_channel_id,
+                users=[user_id],
             )
 
         return make_response("", 200)
