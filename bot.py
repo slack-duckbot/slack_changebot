@@ -26,13 +26,21 @@ app = Flask(__name__)
 client = WebClient(token=settings.SLACK_TOKEN)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
-# Set up a redis connection to be used for the async queue
+# Set up a redis connection to be used for the async worker queue
 redis_q_conn = redis.from_url(settings.REDIS_URL, db=0)
 redis_q = rq.Queue(connection=redis_q_conn)
 CHANGES = {}
 
-# Create a set which will provide simple idempotency support for event callbacks
-REQUESTS = set()
+# Set up a redis connection to db 1 to be used for de-duplicating inbound requests
+redis_conn = redis.from_url(settings.REDIS_URL, db=1)
+
+
+def request_processed(event_id):
+    redis_conn.set(event_id, "")
+
+
+def request_previously_responded(event_id):
+    redis_conn.get(event_id)
 
 
 @app.route("/heartbeat", methods=["GET"])
@@ -218,7 +226,7 @@ def channel_created(event_data):
     log_entry["userId"] = user_id
     log_entry["username"] = username
 
-    if event_id in REQUESTS:
+    if request_previously_responded(event_id):
         logging.debug("Skipping duplicate request")
         log_entry["requestOutcome"] = "Duplicate-Responded"
         logging.debug(json.dumps(log_entry))
@@ -241,7 +249,7 @@ def channel_created(event_data):
         )
 
         # Add the completed event_id to the REQUESTS set
-        REQUESTS.add(event_id)
+        request_processed(event_id)
 
         log_entry["requestOutcome"] = "Relevant-Completed"
         logging.debug(json.dumps(log_entry))
@@ -249,7 +257,7 @@ def channel_created(event_data):
         return
 
     # Add the completed event_id to the REQUESTS set
-    REQUESTS.add(event_id)
+    request_processed(event_id)
 
     log_entry["requestOutcome"] = "Irrelevant-Responded"
     logging.debug(json.dumps(log_entry))
