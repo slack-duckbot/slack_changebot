@@ -14,7 +14,7 @@ from view_edit_change import show_view_edit_change
 from slack_helpers import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
 from feature_release_notes import post_release_notes
-from helpers_redis import request_previously_responded, request_processed
+from helpers_redis import request_previously_responded, request_processed, redis_q
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
@@ -268,7 +268,7 @@ def channel_renamed(event_data):
     log_entry["channelId"] = channel_id
     log_entry["channelName"] = channel_name
 
-    if event_id in REQUESTS:
+    if request_previously_responded(event_id):
         logging.debug("Skipping duplicate request")
         log_entry["requestOutcome"] = "Duplicate-Responded"
         logging.debug(json.dumps(log_entry))
@@ -288,7 +288,7 @@ def channel_renamed(event_data):
         )
 
         # Add the completed event_id to the REQUESTS set
-        REQUESTS.add(event_id)
+        request_processed(event_id)
 
         log_entry["requestOutcome"] = "Relevant-Completed"
         logging.debug(json.dumps(log_entry))
@@ -296,7 +296,7 @@ def channel_renamed(event_data):
         return
 
     # Add the completed event_id to the REQUESTS set
-    REQUESTS.add(event_id)
+    request_processed(event_id)
 
     log_entry["requestOutcome"] = "Irrelevant-Responded"
     logging.debug(json.dumps(log_entry))
