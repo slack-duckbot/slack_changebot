@@ -227,15 +227,15 @@ def process_interactive():
             ]
         )
 
-
-        # If release notes are given, add those to the post. Otherwise still add it as an empty post.
+        # # If release notes are given, add those to the post. Otherwise still add it as an empty post.
         release_notes = " "
         if "value" in state_values["release_notes"]["txt_release_notes"]:
             release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
 
+        last_updated = datetime.datetime.today().strftime("%b %d, %Y at %I:%M%p")
 
         release_notes_post = get_slack_client().chat_postMessage(
-            channel=new_channel_id,
+            channel=new_channel_name,
             blocks=[
                 {
                     "type": "section",
@@ -248,7 +248,7 @@ def process_interactive():
                     "type": "section",
                     "text": {
                         "type": "plain_text",
-                        "text": {change_summary},
+                        "text": change_summary,
                         "emoji": True
                     },
                     "accessory": {
@@ -290,7 +290,7 @@ def process_interactive():
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": "Last updated: Jan 1, 2019 by mattstibbs"
+                            "text": f"Last updated: { last_updated } by <@{user_id}>"
                         }
                     ]
                 }
@@ -298,8 +298,7 @@ def process_interactive():
         )
         
 
-        logging.debug("Release Notes Post: " + release_notes_post)
-        #client.pins_add(channel=new_channel_id, timestamp=release_notes_post["ts"])
+        client.pins_add(channel=new_channel_id, timestamp=release_notes_post["ts"])
         
         # Invite the original user into the channel, after release notes created so they don't get an alert
         get_slack_client().conversations_invite(channel=new_channel_id, users=[user_id])
