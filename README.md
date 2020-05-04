@@ -55,4 +55,4 @@ To specify a different connection URL, use `rq worker --url redis://user:secrets
 
 If you have Docker installed, you can spin up a simple Redis container 
 
-`docker run --name changebot-redis -d -p 6379:6379 redis`
+`docker run -d -p 6379:6379 redis`
