@@ -7,7 +7,6 @@ from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
 
-from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
 from slack_helpers import get_next_change_number
