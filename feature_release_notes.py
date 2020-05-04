@@ -38,15 +38,11 @@ def post_release_notes(
                     "type": "mrkdwn",
                     "text": f"*Release notes - Change {change_number}*",
                 },
-            },
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": release_notes},
                 "block_id": "txt_release_notes",
                 "accessory": {
                     "type": "button",
                     "text": {"type": "plain_text", "text": "Edit"},
-                    "value": "edit_release_notes",
+                    "value": "btn_edit_rns",
                 },
             },
             {
