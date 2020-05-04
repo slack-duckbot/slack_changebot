@@ -77,6 +77,7 @@ def process_interactive():
         release_notes = message_payload["message"]["blocks"][4]["text"]["text"]
         ts = message_payload["message"]["ts"]
         show_view_edit_change(trigger_id, change_summary, release_notes, ts)
+        return make_response("", 200)
 
     if message_payload["type"] == "view_submission":
         callback_id = message_payload["view"]["callback_id"]
