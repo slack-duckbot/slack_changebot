@@ -1,11 +1,14 @@
+import json
+
 from slack_helpers import get_slack_client
 from settings import ENABLE_RELEASE_NOTES
 
 
-def show_view_edit_change(trigger_id, change_summary, release_notes, timestamp):
+def show_view_edit_change(trigger_id, change_summary, release_notes, metadata):
     modal = {
         "type": "modal",
         "callback_id": "edit_change_modal",
+        "private_metadata": json.dumps(metadata),
         "title": {"type": "plain_text", "text": "Edit change channel", "emoji": True,},
         "submit": {"type": "plain_text", "text": "Edit"},
         "close": {"type": "plain_text", "text": "Cancel"},
@@ -46,4 +49,4 @@ def show_view_edit_change(trigger_id, change_summary, release_notes, timestamp):
 
     view_open = get_slack_client().views_open(trigger_id=trigger_id, view=modal)
 
-    print(view_open["view"]["id"])
+    return view_open

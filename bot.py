@@ -92,8 +92,15 @@ def process_interactive():
             None,
         )
         release_notes = release_notes_block["text"]["text"]
-        ts = message_payload["message"]["ts"]
-        show_view_edit_change(trigger_id, change_summary, release_notes, ts)
+        channel_id = message_payload["channel"]["id"]
+        message_ts = message_payload["message"]["ts"]
+        metadata = {
+            "channel_id": channel_id,
+            "message_ts": message_ts,
+        }
+
+        show_view_edit_change(trigger_id, change_summary, release_notes, metadata)
+
         return make_response("", 200)
 
     if message_payload["type"] == "view_submission":
