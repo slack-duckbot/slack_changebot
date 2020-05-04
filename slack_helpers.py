@@ -1,5 +1,3 @@
-import logging
-
 from slack import WebClient
 from settings import SLACK_TOKEN, SLACK_CHANGE_CHANNEL_PREFIX
 
