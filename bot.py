@@ -132,11 +132,17 @@ def process_interactive():
         if callback_id == "create_change_modal":
 
             state_values = message_payload["view"]["state"]["values"]
-
             change_number = state_values["change_no"]["txt_change_no"]["value"]
             change_summary = state_values["change_summary"]["txt_change_summary"][
                 "value"
             ]
+            try:
+                release_notes = state_values["release_notes"]["txt_release_notes"][
+                    "value"
+                ]
+            except KeyError as e:
+                logging.debug("No release notes found in modal payload")
+                release_notes = None
 
             new_channel_name = f"{settings.SLACK_CHANGE_CHANNEL_PREFIX}{change_number}"
 
@@ -220,11 +226,11 @@ def process_interactive():
             if settings.ENABLE_RELEASE_NOTES:
                 redis_q.enqueue(
                     post_release_notes,
-                    state_values,
                     new_channel_name,
                     new_channel_id,
                     change_number,
                     change_summary,
+                    release_notes,
                     user_id,
                 )
 
