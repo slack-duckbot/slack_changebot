@@ -73,8 +73,25 @@ def process_interactive():
     trigger_id = message_payload["trigger_id"]
 
     if message_payload["type"] == "block_actions":
-        change_summary = message_payload["message"]["blocks"][1]["text"]["text"]
-        release_notes = message_payload["message"]["blocks"][4]["text"]["text"]
+        pp.pprint(message_payload)
+        change_summary_block = next(
+            (
+                block
+                for block in message_payload["message"]["blocks"]
+                if block["block_id"] == "txt_change_summary"
+            ),
+            None,
+        )
+        change_summary = change_summary_block["text"]["text"]
+        release_notes_block = next(
+            (
+                block
+                for block in message_payload["message"]["blocks"]
+                if block["block_id"] == "txt_release_notes"
+            ),
+            None,
+        )
+        release_notes = release_notes_block["text"]["text"]
         ts = message_payload["message"]["ts"]
         show_view_edit_change(trigger_id, change_summary, release_notes, ts)
         return make_response("", 200)
