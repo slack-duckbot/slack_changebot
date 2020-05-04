@@ -19,11 +19,11 @@ def post_release_notes(
 
     release_notes_post = get_slack_client().chat_postMessage(
         channel=new_channel_name,
-        text=f"Change {change_number} initial release notes",
+        text=f"Channel <#{new_channel_id}> initial release notes",
         blocks=[
             {
                 "type": "section",
-                "text": {"type": "mrkdwn", "text": "*Description of change*"},
+                "text": {"type": "mrkdwn", "text": "*Change Summary*"},
             },
             {
                 "type": "section",
