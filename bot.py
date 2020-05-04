@@ -108,14 +108,26 @@ def process_interactive():
 
         if callback_id == "edit_change_modal":
             state_values = message_payload["view"]["state"]["values"]
+            metadata = json.loads(message_payload["view"]["private_metadata"])
 
             change_summary = state_values["change_summary"]["txt_change_summary"][
                 "value"
             ]
             release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
-            timestamp = state_values["release_notes"]["txt_release_notes"]["value"]
-            logging.debug(state_values)
-            # get_slack_client().chat_update()
+
+            update_release_notes(metadata, user_id, change_summary, release_notes)
+
+            redis_q.enqueue(
+                get_slack_client().conversations_setPurpose,
+                channel=metadata["channel_id"],
+                purpose=change_summary,
+            )
+
+            redis_q.enqueue(
+                get_slack_client().conversations_setTopic,
+                channel=metadata["channel_id"],
+                topic=change_summary,
+            )
 
         if callback_id == "create_change_modal":
 
