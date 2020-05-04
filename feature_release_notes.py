@@ -29,6 +29,7 @@ def post_release_notes(
             {
                 "type": "section",
                 "text": {"type": "plain_text", "text": change_summary, "emoji": True},
+                "block_id": "txt_change_summary",
             },
             {"type": "divider"},
             {
@@ -41,6 +42,7 @@ def post_release_notes(
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": release_notes},
+                "block_id": "txt_release_notes",
                 "accessory": {
                     "type": "button",
                     "text": {"type": "plain_text", "text": "Edit"},
