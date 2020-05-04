@@ -15,8 +15,12 @@ from view_create_change import show_view_create_change
 from view_edit_change import show_view_edit_change
 from slack_helpers import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
-from feature_release_notes import post_release_notes
-from helpers_redis import request_previously_responded, request_processed, redis_q
+from feature_release_notes import post_release_notes, update_release_notes
+from helpers_redis import (
+    request_previously_responded,
+    request_processed,
+    redis_q,
+)
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
