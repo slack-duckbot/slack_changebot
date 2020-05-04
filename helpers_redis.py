@@ -16,4 +16,4 @@ def request_processed(event_id):
 
 
 def request_previously_responded(event_id):
-    redis_conn.get(event_id)
+    return redis_conn.get(event_id)
