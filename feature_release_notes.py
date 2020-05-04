@@ -24,6 +24,11 @@ def post_release_notes(
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": "*Change Summary*"},
+                "accessory": {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Edit"},
+                    "value": "btn_edit_rns",
+                },
             },
             {
                 "type": "section",
@@ -36,11 +41,6 @@ def post_release_notes(
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": release_notes,},
                 "block_id": "txt_release_notes",
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Edit"},
-                    "value": "btn_edit_rns",
-                },
             },
             {
                 "type": "context",
@@ -71,6 +71,11 @@ def update_release_notes(metadata, user_id, change_summary, release_notes):
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": "*Change Summary*"},
+                "accessory": {
+                    "type": "button",
+                    "text": {"type": "plain_text", "text": "Edit"},
+                    "value": "btn_edit_rns",
+                },
             },
             {
                 "type": "section",
@@ -83,11 +88,6 @@ def update_release_notes(metadata, user_id, change_summary, release_notes):
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": release_notes,},
                 "block_id": "txt_release_notes",
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Edit"},
-                    "value": "btn_edit_rns",
-                },
             },
             {
                 "type": "context",
