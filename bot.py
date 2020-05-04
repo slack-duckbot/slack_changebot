@@ -68,15 +68,12 @@ def process_command():
 @app.route("/interactive", methods=["POST"])
 def process_interactive():
 
-    logging.debug(request.form)
-
     message_payload = json.loads(request.form["payload"])
     user_id = message_payload["user"]["id"]
     user_name = message_payload["user"]["name"]
     trigger_id = message_payload["trigger_id"]
 
     if message_payload["type"] == "block_actions":
-        pp.pprint(message_payload)
         change_summary_block = next(
             (
                 block
