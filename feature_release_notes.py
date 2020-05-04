@@ -29,11 +29,6 @@ def post_release_notes(
             {
                 "type": "section",
                 "text": {"type": "plain_text", "text": change_summary, "emoji": True},
-                "accessory": {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "Edit"},
-                    "value": "btn_edit_rns",
-                },
             },
             {"type": "divider"},
             {
