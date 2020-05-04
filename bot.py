@@ -1,6 +1,8 @@
 import os
 import logging
 import datetime
+import pprint
+
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
@@ -21,6 +23,8 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
 logging.getLogger("asyncio").setLevel(logging.WARNING)
 logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
+
+pp = pprint.PrettyPrinter(indent=4)
 
 app = Flask(__name__)
 
