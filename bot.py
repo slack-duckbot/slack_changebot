@@ -43,26 +43,26 @@ def heartbeat():
 
 @app.route("/commands", methods=["POST"])
 def process_command():
-    logging.debug(request.form["command"])
-    command = request.form["text"]
-    logging.debug(command)
-    logging.debug(request.form)
+    command_text = request.form["text"]
+    logging.debug(f"Command received: {request.form['command']} {command_text}")
 
     user_id = request.form["user_id"]
     trigger_id = request.form["trigger_id"]
 
-    if command == "new":
+    if command_text == "new":
         show_view_create_change(trigger_id)
         return make_response("", 200)
 
-    elif command == "next":
+    elif command_text == "next":
         next_change_number = get_next_change_number()
         return make_response(
             f"The next available change number is: *{next_change_number}*", 200
         )
 
     else:
-        return make_response(f"*{command}* command is not supported currently.", 200)
+        return make_response(
+            f"*{command_text}* command is not supported currently.", 200
+        )
 
 
 @app.route("/interactive", methods=["POST"])
