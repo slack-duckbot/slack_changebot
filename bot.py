@@ -97,6 +97,8 @@ def process_interactive():
         metadata = {
             "channel_id": channel_id,
             "message_ts": message_ts,
+            "change_summary": change_summary,
+            "release_notes": release_notes,
         }
 
         show_view_edit_change(trigger_id, change_summary, release_notes, metadata)
