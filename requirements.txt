@@ -4,3 +4,4 @@ slackeventsapi
 gunicorn
 python-dotenv
 jira
+rq
