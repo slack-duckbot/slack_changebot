@@ -4,12 +4,7 @@ from slack_helpers import get_slack_client
 
 
 def post_release_notes(
-    new_channel_name,
-    new_channel_id,
-    change_number,
-    change_summary,
-    release_notes,
-    user_id,
+    new_channel_name, new_channel_id, change_summary, release_notes, user_id,
 ):
     # If release notes are given, add those to the post. Otherwise still add it as an empty post.
     if not release_notes:

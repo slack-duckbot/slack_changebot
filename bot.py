@@ -228,7 +228,6 @@ def process_interactive():
                     post_release_notes,
                     new_channel_name,
                     new_channel_id,
-                    change_number,
                     change_summary,
                     release_notes,
                     user_id,
