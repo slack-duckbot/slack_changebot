@@ -119,17 +119,18 @@ def process_interactive():
 
             update_release_notes(metadata, user_id, change_summary, release_notes)
 
-            redis_q.enqueue(
-                get_slack_client().conversations_setPurpose,
-                channel=metadata["channel_id"],
-                purpose=change_summary,
-            )
+            if metadata["change_summary"] != change_summary:
+                redis_q.enqueue(
+                    get_slack_client().conversations_setPurpose,
+                    channel=metadata["channel_id"],
+                    purpose=change_summary,
+                )
 
-            redis_q.enqueue(
-                get_slack_client().conversations_setTopic,
-                channel=metadata["channel_id"],
-                topic=change_summary,
-            )
+                redis_q.enqueue(
+                    get_slack_client().conversations_setTopic,
+                    channel=metadata["channel_id"],
+                    topic=change_summary,
+                )
 
         if callback_id == "create_change_modal":
 
