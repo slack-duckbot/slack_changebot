@@ -1,8 +1,10 @@
-from slack_helpers import get_slack_client
+from slack_helpers import get_slack_client, get_next_change_number
 from settings import ENABLE_RELEASE_NOTES
 
 
 def show_view_create_change(trigger_id):
+    next_change_number = get_next_change_number()
+
     modal = {
         "type": "modal",
         "callback_id": "create_change_modal",
@@ -20,6 +22,10 @@ def show_view_create_change(trigger_id):
                     "type": "plain_text_input",
                     "action_id": "txt_change_no",
                     "multiline": False,
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": f"Next unused channel number is {str(next_change_number)}",
+                    },
                 },
                 "block_id": "change_no",
                 "label": {
@@ -34,6 +40,7 @@ def show_view_create_change(trigger_id):
                     "type": "plain_text_input",
                     "action_id": "txt_change_summary",
                     "multiline": False,
+                    "placeholder": {"type": "plain_text", "text": " "},
                 },
                 "block_id": "change_summary",
                 "label": {
@@ -56,6 +63,7 @@ def show_view_create_change(trigger_id):
                     "type": "plain_text_input",
                     "action_id": "txt_release_notes",
                     "multiline": True,
+                    "placeholder": {"type": "plain_text", "text": " "},
                 },
             }
         )

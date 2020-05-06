@@ -32,11 +32,6 @@ def does_channel_exist(channel_name):
         return False
 
 
-def get_next_change_number():
-    response = get_slack_client().channels_list()
-    channels = response["channels"]
-
-
 def extract_change_channels(channels):
     channel_list = []
     for channel in channels:
