@@ -56,7 +56,7 @@ def process_command():
     elif command_text == "next":
         next_change_number = get_next_change_number()
         return make_response(
-            f"The next available Slack change channel is: *{next_change_number}*\n*MAKE SURE YOU CHECK THE CHANGES TRELLO BOARD TOO* :eyes: https://trello.com/b/YibuH0As/ch-ch-ch-changes",
+            f"The next available Slack change channel is: *{next_change_number}*\n*MAKE SURE YOU CHECK THE CHANGES TRELLO BOARD TOO* :eyes: https://trello.com/b/cj665kSN/111-ol-release-board",
             200,
         )
 
