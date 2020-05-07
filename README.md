@@ -35,6 +35,9 @@ ENABLE_JIRA_INTEGRATION=False
 
 ENABLE_JIRA_INTEGRATION is used as a flag to enable/disable Jira integration.
 
+Your Trello API Key can be found at https://trello.com/app-key
+The Trello list ID can be found by adding .json onto your trello board URL
+
 
 ## Background Workers
 

@@ -15,6 +15,7 @@ from view_create_change import show_view_create_change
 from view_edit_change import show_view_edit_change
 from slack_helpers import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
+from feature_trello import create_trello_release
 from feature_release_notes import post_release_notes, update_release_notes
 from helpers_redis import (
     request_previously_responded,
@@ -190,7 +191,19 @@ def process_interactive():
                 change_meta_field.append(
                     {
                         "type": "mrkdwn",
-                        "text": f"*Jira*\n<{jira_release_url}|C{change_number}>",
+                        "text": f"*Jira*\n<{jira_release_url}|{settings.JIRA_PREFIX}{change_number}>",
+                    }
+                )
+
+            trello_release_url = create_trello_release(
+                change_number, user_name, change_summary, release_notes
+            )
+            trello_field = None
+            if trello_release_url is not False:
+                change_meta_field.append(
+                    {
+                        "type": "mrkdwn",
+                        "text": f"*Trello*\n<{trello_release_url}|{settings.TRELLO_PREFIX}{change_number}>",
                     }
                 )
 
