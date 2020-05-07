@@ -16,6 +16,8 @@ def create_trello_release(change_number, user_name, description, release_notes):
                 "pos": "bottom",
                 "desc": release_notes,
                 "idList": TRELLO_LIST_ID,
+                "key": TRELLO_API_KEY,
+                "token": TRELLO_TOKEN,
             },
         )
 
