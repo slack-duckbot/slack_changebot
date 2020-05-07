@@ -22,10 +22,7 @@ def show_view_create_change(trigger_id):
                     "type": "plain_text_input",
                     "action_id": "txt_change_no",
                     "multiline": False,
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": f"Next unused channel number is {str(next_change_number)}",
-                    },
+                    "initial_value": f"{next_change_number}",
                 },
                 "block_id": "change_no",
                 "label": {
