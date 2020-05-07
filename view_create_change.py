@@ -35,6 +35,13 @@ def show_view_create_change(trigger_id):
                 },
             },
             {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":exclamation: Remember to check the Trello Release Board :exclamation:\n:eyes: <https://trello.com/b/cj665kSN/111-ol-release-board> :eyes:",
+                },
+            },
+            {
                 "type": "input",
                 "element": {
                     "type": "plain_text_input",
