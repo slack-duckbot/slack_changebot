@@ -1,4 +1,4 @@
-from slack_helpers import get_slack_client, get_next_change_number
+from helpers.helpers_slack import get_slack_client, get_next_change_number
 from settings import ENABLE_RELEASE_NOTES
 
 
