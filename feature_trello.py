@@ -13,7 +13,7 @@ from settings import (
 TRELLO_API = "https://api.trello.com/1"
 
 
-def create_trello_release(change_number, user_name, description, release_notes):
+def create_trello_card(change_number, user_name, description, release_notes):
     if ENABLE_TRELLO_INTEGRATION:
         logging.debug("Creating Trello card")
         change_name = f"{TRELLO_PREFIX}{change_number} - {description}"

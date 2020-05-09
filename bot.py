@@ -15,7 +15,7 @@ from view_create_change import show_view_create_change
 from view_edit_change import show_view_edit_change
 from helpers.helpers_slack import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
-from feature_trello import create_trello_release
+import feature_trello as trello
 from feature_release_notes import post_release_notes, update_release_notes
 from helpers.helpers_redis import (
     request_previously_responded,
@@ -195,7 +195,7 @@ def process_interactive():
                     }
                 )
 
-            trello_release_url = create_trello_release(
+            trello_release_url = trello.create_trello_card(
                 change_number, user_name, change_summary, release_notes
             )
             trello_field = None
