@@ -1,6 +1,6 @@
 import json
 
-from slack_helpers import get_slack_client
+from helpers.helpers_slack import get_slack_client
 from settings import ENABLE_RELEASE_NOTES
 
 

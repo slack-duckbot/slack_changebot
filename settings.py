@@ -25,7 +25,17 @@ JIRA_USERNAME = os.environ["JIRA_USERNAME"]
 JIRA_PASSWORD = os.environ["JIRA_PASSWORD"]
 JIRA_SERVER = os.environ["JIRA_SERVER"]
 JIRA_PROJECT_KEY = os.environ["JIRA_PROJECT_KEY"]
+JIRA_PREFIX = os.environ["JIRA_PREFIX"]
+
+# Trello configuration
+TRELLO_API_KEY = os.environ["TRELLO_API_KEY"]
+TRELLO_TOKEN = os.environ["TRELLO_TOKEN"]
+TRELLO_LIST_ID = os.environ["TRELLO_LIST_ID"]
+TRELLO_PREFIX = os.environ["TRELLO_PREFIX"]
 
 # Feature toggles
 ENABLE_JIRA_INTEGRATION = config_string_to_bool(os.environ["ENABLE_JIRA_INTEGRATION"])
+ENABLE_TRELLO_INTEGRATION = config_string_to_bool(
+    os.environ["ENABLE_TRELLO_INTEGRATION"]
+)
 ENABLE_RELEASE_NOTES = config_string_to_bool(os.environ["ENABLE_RELEASE_NOTES"])

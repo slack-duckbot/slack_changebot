@@ -1,6 +1,6 @@
 import datetime
 
-from slack_helpers import get_slack_client
+from helpers.helpers_slack import get_slack_client
 
 
 def post_release_notes(
