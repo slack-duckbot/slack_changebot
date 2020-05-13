@@ -23,20 +23,38 @@ ENVIRONMENT_NAME=dev
 
 SLACK_SIGNING_SECRET=
 SLACK_TOKEN=
-SLACK_CHANGES_CHANNEL=#111-changes
-SLACK_CHANGE_CHANNEL_PREFIX=#111-change-
+SLACK_CHANGES_CHANNEL=changes
+SLACK_CHANGE_CHANNEL_PREFIX=change-
+SLACK_ANNOUNCEMENTS_CHANNEL=announcements
+SLACK_USER_TOKEN=
+
+ENABLE_RELEASE_NOTES=True
 
 JIRA_USERNAME=
 JIRA_PASSWORD=
 JIRA_SERVER=
 JIRA_PROJECT_KEY=
 ENABLE_JIRA_INTEGRATION=False
+
+TRELLO_API_KEY=
+TRELLO_TOKEN=
+TRELLO_LIST_ID=
+TRELLO_LIST_IDS=["", ""]        -- Must be provided as a list with 1 or more elements
+TRELLO_PREFIX=
+ENABLE_TRELLO_INTEGRATION=True
 ```
 
-ENABLE_JIRA_INTEGRATION is used as a flag to enable/disable Jira integration.
+ENABLE_RELEASE_NOTES enables the posting of release notes when new change channels are created.
+ENABLE_JIRA_INTEGRATION enables creation of Jira releases for new changes.
 
-Your Trello API Key can be found at https://trello.com/app-key
-The Trello list ID can be found by adding .json onto your trello board URL
+## Trello Integration
+
+`ENABLE_TRELLO_INTEGRATION` enables creation of Trello cards for new changes.
+
+You can get a Trello API Key at https://trello.com/app-key
+You will need to get a Token too, which is linked from that page.
+
+The Trello list ID can be found by adding `.json` onto your Trello board URL.
 
 
 ## Background Workers

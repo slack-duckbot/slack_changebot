@@ -1,3 +1,4 @@
+import json
 import os
 
 from dotenv import load_dotenv
@@ -10,6 +11,11 @@ def config_string_to_bool(setting):
         return True
     else:
         return False
+
+
+def parse_list_from_env_var(env_var):
+    var_list = json.loads(env_var)
+    return var_list
 
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
@@ -30,7 +36,7 @@ JIRA_PREFIX = os.environ["JIRA_PREFIX"]
 # Trello configuration
 TRELLO_API_KEY = os.environ["TRELLO_API_KEY"]
 TRELLO_TOKEN = os.environ["TRELLO_TOKEN"]
-TRELLO_LIST_ID = os.environ["TRELLO_LIST_ID"]
+TRELLO_LIST_IDS = parse_list_from_env_var(os.environ["TRELLO_LIST_IDS"])
 TRELLO_PREFIX = os.environ["TRELLO_PREFIX"]
 
 # Feature toggles
