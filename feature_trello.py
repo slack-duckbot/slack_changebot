@@ -5,7 +5,7 @@ from pprint import pprint, pformat
 from settings import (
     ENABLE_TRELLO_INTEGRATION,
     TRELLO_PREFIX,
-    TRELLO_LIST_ID,
+    TRELLO_LIST_IDS,
     TRELLO_API_KEY,
     TRELLO_TOKEN,
 )
