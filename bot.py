@@ -186,7 +186,7 @@ def process_interactive():
             jira_release_url = create_jira_release(
                 change_number, user_name, change_summary
             )
-            jira_field = None
+
             if jira_release_url is not False:
                 change_meta_field.append(
                     {
@@ -195,11 +195,11 @@ def process_interactive():
                     }
                 )
 
-            trello_release_url = trello.create_trello_card(
+            trello_release_url = trello.create_trello_cards(
                 change_number, user_name, change_summary, release_notes
             )
-            trello_field = None
-            if trello_release_url is not False:
+
+            if trello_release_url:
                 change_meta_field.append(
                     {
                         "type": "mrkdwn",
@@ -243,11 +243,13 @@ def process_interactive():
             if settings.ENABLE_RELEASE_NOTES:
                 redis_q.enqueue(
                     post_release_notes,
+                    change_number,
                     new_channel_name,
                     new_channel_id,
                     change_summary,
                     release_notes,
                     user_id,
+                    trello_release_url,
                 )
 
             # Invite the original user into the channel, after release notes created so they don't get an alert
