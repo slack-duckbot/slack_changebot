@@ -19,7 +19,7 @@ def post_release_notes(
 
     last_updated = datetime.datetime.today().strftime("%b %d, %Y at %I:%M %p")
 
-    change_meta_field = [{"type": "mrkdwn", "text": f"*Channel*\n<#{new_channel_id}>"}]
+    change_meta_field = [{"type": "mrkdwn", "text": f"*Change No*\n{change_number}"}]
 
     if trello_release_url:
         change_meta_field.append(
@@ -33,6 +33,11 @@ def post_release_notes(
         channel=new_channel_name,
         text=f"Channel <#{new_channel_id}> initial release notes",
         blocks=[
+            {
+                "type": "section",
+                "block_id": "change_meta",
+                "fields": change_meta_field,
+            },
             {
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": "*Change Summary*"},
@@ -53,11 +58,6 @@ def post_release_notes(
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": release_notes,},
                 "block_id": "txt_release_notes",
-            },
-            {
-                "type": "section",
-                "block_id": "change_meta",
-                "fields": change_meta_field,
             },
             {
                 "type": "context",
