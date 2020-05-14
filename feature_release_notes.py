@@ -1,16 +1,33 @@
 import datetime
 
 from helpers.helpers_slack import get_slack_client
+import settings
 
 
 def post_release_notes(
-    new_channel_name, new_channel_id, change_summary, release_notes, user_id,
+    change_number,
+    new_channel_name,
+    new_channel_id,
+    change_summary,
+    release_notes,
+    user_id,
+    trello_release_url,
 ):
     # If release notes are given, add those to the post. Otherwise still add it as an empty post.
     if not release_notes:
         release_notes = " "
 
     last_updated = datetime.datetime.today().strftime("%b %d, %Y at %I:%M %p")
+
+    change_meta_field = [{"type": "mrkdwn", "text": f"*Channel*\n<#{new_channel_id}>"}]
+
+    if trello_release_url:
+        change_meta_field.append(
+            {
+                "type": "mrkdwn",
+                "text": f"*Trello*\n<{trello_release_url}|{settings.TRELLO_PREFIX}{change_number}>",
+            }
+        )
 
     release_notes_post = get_slack_client().chat_postMessage(
         channel=new_channel_name,
@@ -36,6 +53,11 @@ def post_release_notes(
                 "type": "section",
                 "text": {"type": "mrkdwn", "text": release_notes,},
                 "block_id": "txt_release_notes",
+            },
+            {
+                "type": "section",
+                "block_id": "change_meta",
+                "fields": change_meta_field,
             },
             {
                 "type": "context",
