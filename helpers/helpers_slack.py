@@ -23,7 +23,7 @@ def get_user_list():
 
 
 def does_channel_exist(channel_name):
-    response = client.channels_list()
+    response = client.conversations_list()
 
     channels = response["channels"]
 

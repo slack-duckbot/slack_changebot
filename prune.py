@@ -5,7 +5,7 @@ import slack
 import settings
 
 client = slack.WebClient(token=settings.SLACK_TOKEN)
-response = client.channels_list()
+response = client.conversations_list()
 channels = response["channels"]
 for channel in channels:
     if (

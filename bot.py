@@ -301,7 +301,7 @@ def channel_created(event_data):
 
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
-        channel_info = client.channels_info(channel=channel_id)
+        channel_info = client.conversations_info(channel=channel_id)
         channel_purpose = channel_info["channel"]["purpose"]["value"]
 
         client.chat_postMessage(
@@ -352,8 +352,8 @@ def channel_renamed(event_data):
     if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX):
 
         # channel_id is used to pass within slack messages instead of name
-        # so slack can handle private channels correctly.
-        channel_info = client.channels_info(channel=channel_id)
+        # so slack can handle private conversations correctly.
+        channel_info = client.conversations_info(channel=channel_id)
         channel_purpose = channel_info["channel"]["purpose"]["value"]
 
         client.chat_postMessage(
