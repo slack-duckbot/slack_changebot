@@ -34,6 +34,8 @@ app = Flask(__name__)
 
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
+client = get_slack_client()
+
 CHANGES = {}
 
 
@@ -123,13 +125,13 @@ def process_interactive():
 
             if metadata["change_summary"] != change_summary:
                 redis_q.enqueue(
-                    get_slack_client().conversations_setPurpose,
+                    client.conversations_setPurpose,
                     channel=metadata["channel_id"],
                     purpose=change_summary,
                 )
 
                 redis_q.enqueue(
-                    get_slack_client().conversations_setTopic,
+                    client.conversations_setTopic,
                     channel=metadata["channel_id"],
                     topic=change_summary,
                 )
@@ -164,17 +166,17 @@ def process_interactive():
                 )
 
             # Create the new channel and set purpose / topic
-            new_channel = get_slack_client().conversations_create(name=new_channel_name)
+            new_channel = client.conversations_create(name=new_channel_name)
             new_channel_id = new_channel["channel"]["id"]
 
             redis_q.enqueue(
-                get_slack_client().conversations_setPurpose,
+                client.conversations_setPurpose,
                 channel=new_channel_id,
                 purpose=change_summary,
             )
 
             redis_q.enqueue(
-                get_slack_client().conversations_setTopic,
+                client.conversations_setTopic,
                 channel=new_channel_id,
                 topic=change_summary,
             )
@@ -208,7 +210,7 @@ def process_interactive():
                 )
 
             redis_q.enqueue(
-                get_slack_client().chat_postMessage,
+                client.chat_postMessage,
                 channel=settings.SLACK_CHANGES_CHANNEL,
                 text=f"Change {change_number} created by <@{user_id}>",
                 blocks=[
@@ -254,9 +256,7 @@ def process_interactive():
 
             # Invite the original user into the channel, after release notes created so they don't get an alert
             redis_q.enqueue(
-                get_slack_client().conversations_invite,
-                channel=new_channel_id,
-                users=[user_id],
+                client.conversations_invite, channel=new_channel_id, users=[user_id],
             )
 
         return make_response("", 200)
@@ -282,7 +282,7 @@ def channel_created(event_data):
 
     # Get the creator's info via the Web API
     user_id = event_data["event"]["channel"]["creator"]
-    user = get_slack_client().users_info(user=user_id)["user"]
+    user = client.users_info(user=user_id)["user"]
     username = user["name"]
     log_entry["userId"] = user_id
     log_entry["username"] = username
@@ -301,10 +301,10 @@ def channel_created(event_data):
 
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
-        channel_info = get_slack_client().channels_info(channel=channel_id)
+        channel_info = client.channels_info(channel=channel_id)
         channel_purpose = channel_info["channel"]["purpose"]["value"]
 
-        get_slack_client().chat_postMessage(
+        client.chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"<@{user_id}> manually created <#{channel_id}>\n>*{channel_purpose}*",
         )
@@ -353,10 +353,10 @@ def channel_renamed(event_data):
 
         # channel_id is used to pass within slack messages instead of name
         # so slack can handle private channels correctly.
-        channel_info = get_slack_client().channels_info(channel=channel_id)
+        channel_info = client.channels_info(channel=channel_id)
         channel_purpose = channel_info["channel"]["purpose"]["value"]
 
-        get_slack_client().chat_postMessage(
+        client.chat_postMessage(
             channel=settings.SLACK_CHANGES_CHANNEL,
             text=f"Channel renamed to *#{channel_name}* (<#{channel_id}>)\n>*{channel_purpose}*",
         )
