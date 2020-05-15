@@ -3,6 +3,8 @@ import json
 from helpers.helpers_slack import get_slack_client
 from settings import ENABLE_RELEASE_NOTES
 
+client = get_slack_client()
+
 
 def show_view_edit_change(trigger_id, change_summary, release_notes, metadata):
     modal = {
@@ -47,6 +49,6 @@ def show_view_edit_change(trigger_id, change_summary, release_notes, metadata):
             }
         )
 
-    view_open = get_slack_client().views_open(trigger_id=trigger_id, view=modal)
+    view_open = client.views_open(trigger_id=trigger_id, view=modal)
 
     return view_open
