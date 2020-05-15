@@ -1,6 +1,8 @@
 from helpers.helpers_slack import get_slack_client, get_next_change_number
 from settings import ENABLE_RELEASE_NOTES
 
+client = get_slack_client()
+
 
 def show_view_create_change(trigger_id):
     next_change_number = get_next_change_number()
@@ -72,6 +74,6 @@ def show_view_create_change(trigger_id):
             }
         )
 
-    view_open = get_slack_client().views_open(trigger_id=trigger_id, view=modal)
+    view_open = client.views_open(trigger_id=trigger_id, view=modal)
 
     print(view_open["view"]["id"])

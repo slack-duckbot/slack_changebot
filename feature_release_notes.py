@@ -3,6 +3,8 @@ import datetime
 from helpers.helpers_slack import get_slack_client
 import settings
 
+client = get_slack_client()
+
 
 def post_release_notes(
     change_number,
@@ -29,7 +31,7 @@ def post_release_notes(
             }
         )
 
-    release_notes_post = get_slack_client().chat_postMessage(
+    release_notes_post = client.chat_postMessage(
         channel=new_channel_name,
         text=f"Channel <#{new_channel_id}> initial release notes",
         blocks=[
@@ -71,16 +73,14 @@ def post_release_notes(
         ],
     )
 
-    get_slack_client().pins_add(
-        channel=new_channel_id, timestamp=release_notes_post["ts"]
-    )
+    client.pins_add(channel=new_channel_id, timestamp=release_notes_post["ts"])
 
 
 def update_release_notes(metadata, user_id, change_summary, release_notes):
 
     last_updated = datetime.datetime.today().strftime("%b %d, %Y at %I:%M %p")
 
-    release_notes_post = get_slack_client().chat_update(
+    release_notes_post = client.chat_update(
         channel=metadata["channel_id"],
         ts=metadata["message_ts"],
         text=f"Channel <#{metadata['channel_id']}> initial release notes",

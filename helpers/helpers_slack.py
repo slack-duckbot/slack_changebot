@@ -6,8 +6,11 @@ def get_slack_client():
     return WebClient(token=SLACK_TOKEN)
 
 
+client = get_slack_client()
+
+
 def get_user_list():
-    response = get_slack_client().users_list()
+    response = client.users_list()
 
     members = response["members"]
     user_ids = []
@@ -20,7 +23,7 @@ def get_user_list():
 
 
 def does_channel_exist(channel_name):
-    response = get_slack_client().channels_list()
+    response = client.channels_list()
 
     channels = response["channels"]
 
@@ -43,7 +46,7 @@ def extract_change_channels(channels):
 def get_next_change_number():
     change_channel_list = []
 
-    response = get_slack_client().conversations_list(limit=1000, types="public_channel")
+    response = client.conversations_list(limit=1000, types="public_channel")
 
     cursor = response["response_metadata"]["next_cursor"]
 
@@ -52,7 +55,7 @@ def get_next_change_number():
     change_channel_list.extend(extract_change_channels(channels))
 
     while cursor != "":
-        response = get_slack_client().conversations_list(
+        response = client.conversations_list(
             limit=1000, types="public_channel", cursor=cursor
         )
         cursor = response["response_metadata"]["next_cursor"]
