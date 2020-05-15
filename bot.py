@@ -6,7 +6,6 @@ import pprint
 from flask import jsonify, json
 from flask import Flask
 from flask import request, make_response
-
 from slackeventsapi import SlackEventAdapter
 
 from helpers.helpers_slack import get_next_change_number
@@ -22,6 +21,7 @@ from helpers.helpers_redis import (
     request_processed,
     redis_q,
 )
+import slack_commands
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
@@ -62,6 +62,10 @@ def process_command():
             f"The next available Slack change channel is: *{next_change_number}*\n*MAKE SURE YOU CHECK THE CHANGES TRELLO BOARD TOO* :eyes: https://trello.com/b/cj665kSN/111-ol-release-board",
             200,
         )
+
+    elif command_text == "rename":
+        slack_commands.rename_channel(request.form)
+        return make_response("", 200)
 
     else:
         return make_response(
@@ -258,6 +262,13 @@ def process_interactive():
             redis_q.enqueue(
                 client.conversations_invite, channel=new_channel_id, users=[user_id],
             )
+
+        if callback_id == "rename_conversation_modal":
+            state_values = message_payload["view"]["state"]["values"]
+            metadata = json.loads(message_payload["view"]["private_metadata"])
+            new_name = state_values["new_name"]["txt_new_name"]["value"]
+            channel_id = metadata["channel_id"]
+            client.conversations_rename(channel=channel_id, name=new_name)
 
         return make_response("", 200)
 
