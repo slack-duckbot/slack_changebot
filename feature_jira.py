@@ -1,6 +1,8 @@
 from datetime import date
-from jira import JIRA
 from pprint import pprint, pformat
+
+from jira import JIRA
+
 from settings import (
     ENABLE_JIRA_INTEGRATION,
     JIRA_SERVER,

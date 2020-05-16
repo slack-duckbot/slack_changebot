@@ -1,7 +1,8 @@
 import logging
+from pprint import pprint, pformat
 
 import requests
-from pprint import pprint, pformat
+
 from settings import (
     ENABLE_TRELLO_INTEGRATION,
     TRELLO_PREFIX,

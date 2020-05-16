@@ -8,20 +8,24 @@ from flask import Flask
 from flask import request, make_response
 from slackeventsapi import SlackEventAdapter
 
-from helpers.helpers_slack import get_next_change_number
-import settings
-from view_create_change import show_view_create_change
-from view_edit_change import show_view_edit_change
-from helpers.helpers_slack import get_slack_client, get_user_list, does_channel_exist
 from feature_jira import create_jira_release
-import feature_trello as trello
 from feature_release_notes import post_release_notes, update_release_notes
+from helpers.helpers_slack import (
+    get_slack_client,
+    get_user_list,
+    does_channel_exist,
+    get_next_change_number,
+)
+import feature_trello as trello
 from helpers.helpers_redis import (
     request_previously_responded,
     request_processed,
     redis_q,
 )
+import settings
 import slack_commands
+from view_create_change import show_view_create_change
+from view_edit_change import show_view_edit_change
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
@@ -35,8 +39,6 @@ app = Flask(__name__)
 slack_events_adapter = SlackEventAdapter(settings.SLACK_SIGNING_SECRET, "/events", app)
 
 client = get_slack_client()
-
-CHANGES = {}
 
 
 @app.route("/heartbeat", methods=["GET"])
