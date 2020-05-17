@@ -1,7 +1,7 @@
 import datetime
 
-from helpers.helpers_slack import get_slack_client
-import settings
+from app import app
+from app.helpers.slack import get_slack_client
 
 client = get_slack_client()
 
@@ -27,7 +27,7 @@ def post_release_notes(
         change_meta_field.append(
             {
                 "type": "mrkdwn",
-                "text": f"*Trello*\n<{trello_release_url}|{settings.TRELLO_PREFIX}{change_number}>",
+                "text": f"*Trello*\n<{trello_release_url}|{app.config['TRELLO_PREFIX']}{change_number}>",
             }
         )
 

@@ -1,14 +1,14 @@
 import redis
 import rq
 
-import settings
+from app import app
 
 # Set up a redis connection to be used for the async worker queue
-redis_q_conn = redis.from_url(settings.REDIS_URL, db=0)
+redis_q_conn = redis.from_url(app.config["REDIS_URL"], db=0)
 redis_q = rq.Queue(connection=redis_q_conn)
 
 # Set up a redis connection to db 1 to be used for de-duplicating inbound requests
-redis_conn = redis.from_url(settings.REDIS_URL, db=1)
+redis_conn = redis.from_url(app.config["REDIS_URL"], db=1)
 
 
 def request_processed(event_id):

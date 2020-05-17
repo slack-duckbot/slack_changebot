@@ -1,11 +1,10 @@
 import json
 import logging
-import pprint as pp
 
 import requests
 
-from helpers.helpers_slack import get_slack_client
-import settings
+from app.helpers.slack import get_slack_client
+from app import app
 
 client = get_slack_client()
 
@@ -21,12 +20,13 @@ def rename_channel(form):
     if conversation_info["channel"]["creator"] != bot_user_id:
         message = {"text": "I didn't create this channel so I can't rename it :("}
         requests.post(url=form["response_url"], json=message)
+        logging.debug("Conversation Rename Command: Conversation not owned by bot")
         return
 
     metadata = {"channel_id": channel_id}
 
     # We only want to rename change channels that match the specified prefix pattern
-    if channel_name.startswith(settings.SLACK_CHANGE_CHANNEL_PREFIX):
+    if channel_name.startswith(app.config["SLACK_CHANGE_CHANNEL_PREFIX"]):
         modal = {
             "type": "modal",
             "callback_id": "rename_conversation_modal",

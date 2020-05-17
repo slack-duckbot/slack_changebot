@@ -1,5 +1,5 @@
-from helpers.helpers_slack import get_slack_client, get_next_change_number
-from settings import ENABLE_RELEASE_NOTES
+from app.helpers.slack import get_slack_client, get_next_change_number
+from app import app
 
 client = get_slack_client()
 
@@ -58,7 +58,7 @@ def show_view_create_change(trigger_id):
         ],
     }
 
-    if ENABLE_RELEASE_NOTES:
+    if app.config["ENABLE_RELEASE_NOTES"]:
         modal["blocks"].append(
             {
                 "type": "input",
