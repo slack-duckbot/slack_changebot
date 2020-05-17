@@ -1,4 +1,4 @@
-v0.3RC
+v0.3 (17-Mar-2020)
 ====
 - Use `/command new` to initiate a new create change process
 - Use `/command next` to display the next available change channe number
