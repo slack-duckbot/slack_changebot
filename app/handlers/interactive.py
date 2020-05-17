@@ -4,7 +4,7 @@ from flask import json
 from flask import request, make_response
 
 from app import app
-from app.features import trello as trello
+from app.features import trello
 from app.features.jira import create_jira_release
 from app.features.release_notes import post_release_notes, update_release_notes
 from app.helpers.slack import does_channel_exist, get_slack_client
