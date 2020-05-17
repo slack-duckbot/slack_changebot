@@ -75,5 +75,3 @@ def show_view_create_change(trigger_id):
         )
 
     view_open = client.views_open(trigger_id=trigger_id, view=modal)
-
-    print(view_open["view"]["id"])
