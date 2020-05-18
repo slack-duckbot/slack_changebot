@@ -1,15 +1,12 @@
-import logging
-
 from flask import json
 from flask import request, make_response
 
 from app import app
-from app.features import trello
-from app.features.jira import create_jira_release
-from app.features.release_notes import post_release_notes, update_release_notes
+from app.features.release_notes import update_release_notes
 from app.helpers.slack import does_channel_exist, get_slack_client
 from app.helpers.redis import redis_q
 from app.helpers import general
+from app.workflows import create_change
 
 from app.views.edit_change import show_view_edit_change
 
@@ -20,8 +17,8 @@ client = get_slack_client()
 def process_interactive():
 
     message_payload = json.loads(request.form["payload"])
+    print(message_payload)
     user_id = message_payload["user"]["id"]
-    user_name = message_payload["user"]["name"]
     trigger_id = message_payload["trigger_id"]
 
     if message_payload["type"] == "block_actions":
@@ -87,6 +84,9 @@ def process_interactive():
 
             state_values = message_payload["view"]["state"]["values"]
             change_number = state_values["change_no"]["txt_change_no"]["value"]
+            metadata = json.loads(message_payload["view"]["private_metadata"])
+            channel_id = metadata["channel_id"]
+            user_id = message_payload["user"]["id"]
 
             if not general.represents_an_int(change_number):
                 return {
@@ -100,7 +100,6 @@ def process_interactive():
 
             # Check to see if channel already exists, return an error if so
             if does_channel_exist(new_channel_name):
-
                 return {
                     "response_action": "errors",
                     "errors": {
@@ -108,110 +107,10 @@ def process_interactive():
                     },
                 }
 
-            change_summary = state_values["change_summary"]["txt_change_summary"][
-                "value"
-            ]
+            redis_q.enqueue(create_change.create_change, message_payload)
 
-            try:
-                release_notes = state_values["release_notes"]["txt_release_notes"][
-                    "value"
-                ]
-            except KeyError as e:
-                logging.debug("No release notes found in modal payload")
-                release_notes = None
-
-            # Create the new channel and set purpose / topic
-            new_channel = client.conversations_create(name=new_channel_name)
-            new_channel_id = new_channel["channel"]["id"]
-
-            redis_q.enqueue(
-                client.conversations_setPurpose,
-                channel=new_channel_id,
-                purpose=change_summary,
-            )
-
-            redis_q.enqueue(
-                client.conversations_setTopic,
-                channel=new_channel_id,
-                topic=change_summary,
-            )
-
-            change_meta_field = [
-                {"type": "mrkdwn", "text": f"*Channel*\n<#{new_channel_id}>"}
-            ]
-
-            jira_release_url = create_jira_release(
-                change_number, user_name, change_summary
-            )
-
-            if jira_release_url is not False:
-                change_meta_field.append(
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Jira*\n<{jira_release_url}|{app.config['JIRA_PREFIX']}{change_number}>",
-                    }
-                )
-
-            trello_release_url = trello.create_trello_cards(
-                change_number, user_name, change_summary, release_notes
-            )
-
-            if trello_release_url:
-                change_meta_field.append(
-                    {
-                        "type": "mrkdwn",
-                        "text": f"*Trello*\n<{trello_release_url}|{app.config['TRELLO_PREFIX']}{change_number}>",
-                    }
-                )
-
-            redis_q.enqueue(
-                client.chat_postMessage,
-                channel=app.config["SLACK_CHANGES_CHANNEL"],
-                text=f"Change {change_number} created by <@{user_id}>",
-                blocks=[
-                    {
-                        "type": "section",
-                        "text": {"type": "mrkdwn", "text": ":bulb: New change created"},
-                    },
-                    {
-                        "type": "section",
-                        "block_id": "high_level_purpose",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"*High level purpose*\n{change_summary}",
-                        },
-                    },
-                    {
-                        "type": "section",
-                        "block_id": "change_meta",
-                        "fields": change_meta_field,
-                    },
-                    {
-                        "type": "section",
-                        "block_id": "creation_info",
-                        "fields": [
-                            {"type": "mrkdwn", "text": f"*Creator*\n<@{user_id}>"}
-                        ],
-                    },
-                    {"type": "divider"},
-                ],
-            )
-
-            if app.config["ENABLE_RELEASE_NOTES"]:
-                redis_q.enqueue(
-                    post_release_notes,
-                    change_number,
-                    new_channel_name,
-                    new_channel_id,
-                    change_summary,
-                    release_notes,
-                    user_id,
-                    trello_release_url,
-                )
-
-            # Invite the original user into the channel, after release notes created so they don't get an alert
-            redis_q.enqueue(
-                client.conversations_invite, channel=new_channel_id, users=[user_id],
+            client.chat_postEphemeral(
+                user=user_id, channel=channel_id, text="Creating a change for you...",
             )
 
         if callback_id == "rename_conversation_modal":
