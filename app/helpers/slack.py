@@ -65,12 +65,12 @@ def get_next_change_number():
 
     change_channel_list = get_full_conversations_list()
 
-    sorted_channel_list = sorted(change_channel_list, key=lambda i: i[0])
+    change_number_list = [
+        int(change[0].rpartition("-")[-1]) for change in change_channel_list
+    ]
 
-    if len(sorted_channel_list) > 0:
-        most_recent_channel = sorted_channel_list[-1]
-        next_change_number = (
-            int(most_recent_channel[0].rsplit(sep="-", maxsplit=1)[-1]) + 1
-        )
+    sorted_change_list = sorted(change_number_list, reverse=True)
 
-        return next_change_number
+    next_change_number = next(iter(sorted_change_list)) + 1
+
+    return next_change_number
