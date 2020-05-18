@@ -9,6 +9,7 @@ from app.features.jira import create_jira_release
 from app.features.release_notes import post_release_notes, update_release_notes
 from app.helpers.slack import does_channel_exist, get_slack_client
 from app.helpers.redis import redis_q
+from app.helpers import general
 
 from app.views.edit_change import show_view_edit_change
 
@@ -86,16 +87,12 @@ def process_interactive():
 
             state_values = message_payload["view"]["state"]["values"]
             change_number = state_values["change_no"]["txt_change_no"]["value"]
-            change_summary = state_values["change_summary"]["txt_change_summary"][
-                "value"
-            ]
-            try:
-                release_notes = state_values["release_notes"]["txt_release_notes"][
-                    "value"
-                ]
-            except KeyError as e:
-                logging.debug("No release notes found in modal payload")
-                release_notes = None
+
+            if not general.represents_an_int(change_number):
+                return {
+                    "response_action": "errors",
+                    "errors": {"change_no": "Must be a number"},
+                }
 
             new_channel_name = (
                 f"{app.config['SLACK_CHANGE_CHANNEL_PREFIX']}{change_number}"
@@ -110,6 +107,18 @@ def process_interactive():
                         "change_no": "A channel already exists with this change number"
                     },
                 }
+
+            change_summary = state_values["change_summary"]["txt_change_summary"][
+                "value"
+            ]
+
+            try:
+                release_notes = state_values["release_notes"]["txt_release_notes"][
+                    "value"
+                ]
+            except KeyError as e:
+                logging.debug("No release notes found in modal payload")
+                release_notes = None
 
             # Create the new channel and set purpose / topic
             new_channel = client.conversations_create(name=new_channel_name)
