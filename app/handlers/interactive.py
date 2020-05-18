@@ -87,6 +87,7 @@ def process_interactive():
             metadata = json.loads(message_payload["view"]["private_metadata"])
             channel_id = metadata["channel_id"]
             user_id = message_payload["user"]["id"]
+            user_name = message_payload["user"]["name"]
 
             if not general.represents_an_int(change_number):
                 return {
@@ -109,9 +110,9 @@ def process_interactive():
 
             redis_q.enqueue(create_change.create_change, message_payload)
 
-            client.chat_postEphemeral(
-                user=user_id, channel=channel_id, text="Creating a change for you...",
-            )
+            # client.chat_postEphemeral(
+            #     user=user_id, channel=user_name, text="Creating a change for you...",
+            # )
 
         if callback_id == "rename_conversation_modal":
             state_values = message_payload["view"]["state"]["values"]
