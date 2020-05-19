@@ -1,3 +1,5 @@
+import logging
+
 from slack import WebClient
 from app import app
 
@@ -65,9 +67,15 @@ def get_next_change_number():
 
     change_channel_list = get_full_conversations_list()
 
-    change_number_list = [
-        int(change[0].rpartition("-")[-1]) for change in change_channel_list
-    ]
+    change_number_list = []
+
+    for change in change_channel_list:
+        try:
+            channel_name = change[0]
+            change_number_list.append(int(channel_name.rpartition("-")[-1]))
+        except ValueError as e:
+            logging.error(f"Skipping invalid change number {channel_name} ({e})")
+            continue
 
     sorted_change_list = sorted(change_number_list, reverse=True)
 
