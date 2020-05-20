@@ -99,5 +99,10 @@ def create_change(message_payload):
             trello_release_url,
         )
 
-    # Invite the original user into the channel, after release notes created so they don't get an alert
-    client.conversations_invite(channel=new_channel_id, users=[user_id])
+    # Invite the original user plus any selected users into the channel
+    # We invite after release notes are created so they don't get a message alert straight away
+    selected_users = state_values["users_select"]["selected_users"]["selected_users"]
+
+    selected_users.append(user_id)
+
+    client.conversations_invite(channel=new_channel_id, users=selected_users)
