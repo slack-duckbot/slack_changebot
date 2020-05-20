@@ -101,7 +101,12 @@ def create_change(message_payload):
 
     # Invite the original user plus any selected users into the channel
     # We invite after release notes are created so they don't get a message alert straight away
-    selected_users = state_values["users_select"]["selected_users"]["selected_users"]
+    try:
+        selected_users = state_values["users_select"]["selected_users"][
+            "selected_users"
+        ]
+    except KeyError:
+        selected_users = []
 
     selected_users.append(user_id)
 
