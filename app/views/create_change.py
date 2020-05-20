@@ -78,4 +78,18 @@ def show_view_create_change(trigger_id, form):
             }
         )
 
+    modal["blocks"].append(
+        {
+            "type": "input",
+            "block_id": "users_select",
+            "optional": True,
+            "label": {"type": "plain_text", "text": "Automatically invite these users"},
+            "element": {
+                "action_id": "selected_users",
+                "type": "multi_users_select",
+                "placeholder": {"type": "plain_text", "text": "Pick users.."},
+            },
+        }
+    )
+
     client.views_open(trigger_id=trigger_id, view=modal)
