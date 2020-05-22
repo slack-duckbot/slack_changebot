@@ -5,11 +5,14 @@ from flask import request, make_response
 from app import app
 from app.views.create_change import show_view_create_change
 from app.views import rename_change
-from app.helpers.slack import get_next_change_number
+from app.helpers.slack import get_next_change_number, verify_request
 
 
 @app.route("/commands", methods=["POST"])
 def process_command():
+    if not verify_request(request):
+        return make_response("", 403)
+
     form = request.form
     command_text = form["text"]
     logging.debug(f"Command received: {request.form['command']} {command_text}")

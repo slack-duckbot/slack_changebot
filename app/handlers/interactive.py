@@ -3,7 +3,7 @@ from flask import request, make_response
 
 from app import app
 from app.features.release_notes import update_release_notes
-from app.helpers.slack import does_channel_exist, get_slack_client
+from app.helpers.slack import does_channel_exist, get_slack_client, verify_request
 from app.helpers.redis import redis_q
 from app.helpers import general
 from app.workflows import create_change
@@ -16,8 +16,10 @@ client = get_slack_client()
 @app.route("/interactive", methods=["POST"])
 def process_interactive():
 
+    if not verify_request(request):
+        return make_response("", 403)
+
     message_payload = json.loads(request.form["payload"])
-    print(message_payload)
     user_id = message_payload["user"]["id"]
     trigger_id = message_payload["trigger_id"]
 
