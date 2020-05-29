@@ -1,0 +1,4 @@
+FROM python:3.8
+
+WORKDIR /usr/src/slack_changebot/app
+RUN pip install --upgrade pip && pip install --no-cache-dir rq==1.4.2

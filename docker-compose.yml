@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  rq-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.rq
+    volumes:
+      - "./app:/usr/src/slack_changebot/app"
+    command: ["rq", "worker", "--url", "redis://rq-redis:6379"]
+    depends_on:
+      - rq-redis
+
+  rq-redis:
+    image: redis:6.0
