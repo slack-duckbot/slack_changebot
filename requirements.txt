@@ -1,5 +1,5 @@
 Flask
-slackclient==2.6.0rc1
+slackclient==2.7.0
 slackeventsapi
 gunicorn
 python-dotenv
