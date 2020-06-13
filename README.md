@@ -17,7 +17,7 @@ Before running for the first time, you will need to build the Docker images and 
 $ docker-compose build
 ```
 
-You won't have to repeat the build phase unless you do something of material signifiance such as change `requirements.txt` or specify a new version of RQ / Redix, etc.
+You won't have to repeat the build phase unless you do something of material signifiance such as change `requirements.txt` or specify a new version of RQ / Redis, etc.
 
 #### Run
 
