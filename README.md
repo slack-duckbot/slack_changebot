@@ -1,5 +1,41 @@
 # changebot v0.3
 
+## Running the stack under Docker
+
+With Docker you can run the whole stack locally without having to install any of the following: Python, Flask, Redis, RQ.
+
+### Prepping your dev machine
+
+  1. Install the latest version of [Docker Desktop](https://docs.docker.com/get-docker/)
+
+### Running the stack
+
+#### Build
+
+Before running for the first time, you will need to build the Docker images and services for Docker Compose to use. Do this:
+```
+$ docker-compose build
+```
+
+You won't have to repeat the build phase unless you do something of material signifiance such as change `requirements.txt` or specify a new version of RQ / Redix, etc.
+
+#### Run
+
+You can run the stack either as a daemon (in the background) or as a foreground task in a terminal. The latter gives you the advantage of delivering console output for each of the running services.
+
+Run the stack in the foreground with:
+```
+$ docker-compose up
+```
+
+You can end the stack by CTRL-C.
+
+More information on using Docker Compose can be found [here](https://docs.docker.com/compose/).
+
+Note that because the `docker-compose.yml` file maps a volume from this project directory into the container running the Flask server, any changes you make to files in the Flask project will be instantly available in the container and will result in a restart of the dev server. (You may not experience this effect after using git commands which alter the files).
+
+If you do need to stop and restart the server, just CTRL-C and issue the `up` command again as described above.
+
 ## Windows installation
 
 - Install python via store (from python.org was not working from either git bash (permission denied) nor powershell (opened store))
