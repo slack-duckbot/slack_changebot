@@ -6,6 +6,7 @@ from app import app
 from app.views.create_change import show_view_create_change
 from app.views import rename_change
 from app.helpers.slack import get_next_change_number, verify_request
+from app.workflows import release_change
 
 
 @app.route("/commands", methods=["POST"])
@@ -32,6 +33,10 @@ def process_command():
 
     elif command_text == "rename":
         rename_change.rename_channel(request.form)
+        return make_response("", 200)
+
+    elif command_text == "release":
+        release_change.release_change(request.form)
         return make_response("", 200)
 
     else:
