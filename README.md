@@ -1,19 +1,20 @@
 # changebot v0.3
 
-## Running the stack under Docker
+## Running the stack locally under Docker
 
 With Docker you can run the whole stack locally without having to install any of the following: Python, Flask, Redis, RQ.
 
 ### Prepping your dev machine
 
-  1. Install the latest version of [Docker Desktop](https://docs.docker.com/get-docker/)
-  2. Sign-in Docker to your DockerHub account (or create one if you don't have one)
+1. Install the latest version of [Docker Desktop](https://docs.docker.com/get-docker/)
+2. Sign-in Docker to your DockerHub account (or create one if you don't have one)
 
 ### Running the stack
 
 #### Build
 
 Before running for the first time, you will need to build the Docker images and services for Docker Compose to use. Do this:
+
 ```
 $ docker-compose build
 ```
@@ -25,6 +26,7 @@ You won't have to repeat the build phase unless you do something of material sig
 You can run the stack either as a daemon (in the background) or as a foreground task in a terminal. The latter gives you the advantage of delivering console output for each of the running services.
 
 Run the stack in the foreground with:
+
 ```
 $ docker-compose up
 ```
@@ -93,10 +95,9 @@ You will need to get a Token too, which is linked from that page.
 
 The Trello list ID can be found by adding `.json` onto your Trello board URL.
 
-
 ## Background Workers
 
-This app makes use of the *rq* library to put async jobs onto a background worker queue.
+This app makes use of the _rq_ library to put async jobs onto a background worker queue.
 
 The worker queue is stored in Redis, so you will need a Redis instance available to run the app.
 
@@ -105,12 +106,7 @@ The Redis connection details are set in an environment variable e.g.
 `export REDIS_URL=redis://localhost:6379`
 
 ### Running a background worker
+
 To run a background worker, use the command `rq worker` (will default to `redis://localhost:6379` connection)
 
 To specify a different connection URL, use `rq worker --url redis://user:secrets@a.different.host:1234/0`
-
-### Running a local instance of Redis using Docker
-
-If you have Docker installed, you can spin up a simple Redis container 
-
-`docker run -d -p 6379:6379 redis`
