@@ -20,7 +20,8 @@ def create_change(message_payload):
 
     try:
         release_notes = state_values["release_notes"]["txt_release_notes"]["value"]
-    except KeyError as e:
+
+    except KeyError:
         logging.debug("No release notes found in modal payload")
         release_notes = None
 
