@@ -114,3 +114,16 @@ def verify_request(request):
     else:
         logging.warning("Verification failed. Signature invalid.")
         return False
+
+
+def is_change_channel(channel_name, change_channel_prefix=None):
+    prefix = (
+        change_channel_prefix
+        if change_channel_prefix
+        else app.config["SLACK_CHANGE_CHANNEL_PREFIX"]
+    )
+
+    if channel_name.startswith(prefix):
+        return True
+    else:
+        return False
