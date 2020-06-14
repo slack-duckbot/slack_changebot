@@ -7,6 +7,7 @@ With Docker you can run the whole stack locally without having to install any of
 ### Prepping your dev machine
 
   1. Install the latest version of [Docker Desktop](https://docs.docker.com/get-docker/)
+  2. Sign-in Docker to your DockerHub account (or create one if you don't have one)
 
 ### Running the stack
 
