@@ -32,7 +32,7 @@ services:
     volumes:
       - "./:/usr/src/slack_changebot"
     command: [
-      "../container_scripts/docker-wait.sh",
+      "container_scripts/docker-wait.sh",
       "rq-redis", "6379",
       "rq", "worker", "--url", "redis://rq-redis:6379",
     ]
