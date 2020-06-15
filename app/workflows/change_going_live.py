@@ -15,19 +15,17 @@ def change_going_live(form):
         logging.debug("Not a valid change channel")
         return False
 
-    change_number = sl.get_change_number_from_channel_name(channel_name)
-
     purpose = sl.get_channel_purpose(channel_id)
 
     client.chat_postMessage(
         channel=app.config["SLACK_ANNOUNCEMENTS_CHANNEL"],
-        text=f"Change {change_number} is going live!",
+        text=f"<#{channel_id}> is going live!",
         blocks=[
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f":rocket: Change {change_number} is going live!",
+                    "text": f":rocket: <#{channel_id}> is going live!",
                 },
             },
             {
@@ -41,11 +39,6 @@ def change_going_live(form):
                 "fields": [
                     {"type": "mrkdwn", "text": f"*Mission Commander:* <@{user_id}>"}
                 ],
-            },
-            {
-                "type": "section",
-                "block_id": "channel_name",
-                "text": {"type": "mrkdwn", "text": f"<#{channel_id}>",},
             },
             {"type": "divider"},
         ],
