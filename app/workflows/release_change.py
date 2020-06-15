@@ -12,3 +12,5 @@ def release_change(form):
     if not sl.is_change_channel(channel_name):
         logging.debug("Not a valid change channel")
         return False
+
+    change_number = sl.get_change_number_from_channel_name(channel_name)
