@@ -127,3 +127,8 @@ def is_change_channel(channel_name, change_channel_prefix=None):
         return True
     else:
         return False
+
+
+def get_change_number_from_channel_name(channel_name):
+    return int(channel_name.rpartition("-")[-1])
+
