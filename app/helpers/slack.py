@@ -133,6 +133,10 @@ def get_change_number_from_channel_name(channel_name):
     return int(channel_name.rpartition("-")[-1])
 
 
-def get_channel_info(*, channel_name=None, channel_id=None):
-    if not any([channel_name, channel_id]):
-        logging.debug("No channel info provided")
+def get_channel_info(channel_id):
+    return client.conversations_info(channel=channel_id)
+
+
+def get_channel_purpose(channel_id):
+    info = get_channel_info(channel_id)
+    return info["channel"]["purpose"]["value"]

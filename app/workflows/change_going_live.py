@@ -6,7 +6,7 @@ from app.helpers import slack as sl
 client = sl.get_slack_client()
 
 
-def release_change(form):
+def change_going_live(form):
     channel_name = form["channel_name"]
     user_id = form["user_id"]
     channel_id = form["channel_id"]
@@ -17,7 +17,7 @@ def release_change(form):
 
     change_number = sl.get_change_number_from_channel_name(channel_name)
 
-    sl.get_channel_info()
+    purpose = sl.get_channel_purpose(channel_id)
 
     client.chat_postMessage(
         channel=app.config["SLACK_ANNOUNCEMENTS_CHANNEL"],
@@ -32,22 +32,41 @@ def release_change(form):
             },
             {
                 "type": "section",
-                "block_id": "channel_name",
-                "text": {"type": "mrkdwn", "text": f"<#{channel_id}>",},
+                "block_id": "high_level_purpose",
+                "text": {"type": "mrkdwn", "text": f"*Change summary:* {purpose}",},
             },
-            # {
-            #     "type": "section",
-            #     "block_id": "high_level_purpose",
-            #     "text": {
-            #         "type": "mrkdwn",
-            #         "text": f"*High level purpose*\n{change_summary}",
-            #     },
-            # },
             {
                 "type": "section",
                 "block_id": "commander_info",
                 "fields": [
-                    {"type": "mrkdwn", "text": f"*Mission Commander*\n<@{user_id}>"}
+                    {"type": "mrkdwn", "text": f"*Mission Commander:* <@{user_id}>"}
+                ],
+            },
+            {
+                "type": "section",
+                "block_id": "channel_name",
+                "text": {"type": "mrkdwn", "text": f"<#{channel_id}>",},
+            },
+            {"type": "divider"},
+        ],
+    )
+
+    client.chat_postMessage(
+        channel=channel_id,
+        text=f"This change is going live!",
+        blocks=[
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": f":rocket: This change is going live!",
+                },
+            },
+            {
+                "type": "section",
+                "block_id": "commander_info",
+                "fields": [
+                    {"type": "mrkdwn", "text": f"*Mission Commander:* <@{user_id}>"}
                 ],
             },
             {"type": "divider"},
