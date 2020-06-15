@@ -17,6 +17,8 @@ def release_change(form):
 
     change_number = sl.get_change_number_from_channel_name(channel_name)
 
+    sl.get_channel_info()
+
     client.chat_postMessage(
         channel=app.config["SLACK_ANNOUNCEMENTS_CHANNEL"],
         text=f"Change {change_number} is going live!",
