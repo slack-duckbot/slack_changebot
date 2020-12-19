@@ -114,3 +114,29 @@ def verify_request(request):
     else:
         logging.warning("Verification failed. Signature invalid.")
         return False
+
+
+def is_change_channel(channel_name, change_channel_prefix=None):
+    prefix = (
+        change_channel_prefix
+        if change_channel_prefix
+        else app.config["SLACK_CHANGE_CHANNEL_PREFIX"]
+    )
+
+    if channel_name.startswith(prefix):
+        return True
+    else:
+        return False
+
+
+def get_change_number_from_channel_name(channel_name):
+    return int(channel_name.rpartition("-")[-1])
+
+
+def get_channel_info(channel_id):
+    return client.conversations_info(channel=channel_id)
+
+
+def get_channel_purpose(channel_id):
+    info = get_channel_info(channel_id)
+    return info["channel"]["purpose"]["value"]

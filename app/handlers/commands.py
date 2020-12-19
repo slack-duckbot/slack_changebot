@@ -6,6 +6,8 @@ from app import app
 from app.views.create_change import show_view_create_change
 from app.views import rename_change
 from app.helpers.slack import get_next_change_number, verify_request
+from app.helpers.redis import redis_q
+from app.workflows import change_going_live
 
 
 @app.route("/commands", methods=["POST"])
@@ -31,7 +33,11 @@ def process_command():
         )
 
     elif command_text == "rename":
-        rename_change.rename_channel(request.form)
+        redis_q.enqueue(rename_change.rename_channel, request.form)
+        return make_response("", 200)
+
+    elif command_text == "release":
+        redis_q.enqueue(change_going_live.change_going_live, request.form)
         return make_response("", 200)
 
     else:
