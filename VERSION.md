@@ -1,3 +1,7 @@
+v0.4 (19-Dec-2020)
+====
+- Use `/command release` from within a change channel to announce that it is going live
+
 v0.3 (17-Mar-2020)
 ====
 - Use `/command new` to initiate a new create change process
