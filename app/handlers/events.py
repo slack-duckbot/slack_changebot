@@ -16,7 +16,7 @@ client = get_slack_client()
 
 
 @slack_events_adapter.on("channel_created")
-def channel_created(event_data):
+def event_channel_created(event_data):
     log_entry = {}
 
     event_id = event_data["event_id"]
@@ -44,7 +44,6 @@ def channel_created(event_data):
         logging.debug("Skipping duplicate request")
         log_entry["requestOutcome"] = "Duplicate-Responded"
         logging.debug("Channel Created Event: Duplicate")
-        return
 
     # Only notify a change when the channel was manually created by a human, to avoid picking up app creation events
     if (
@@ -62,23 +61,22 @@ def channel_created(event_data):
             text=f"<@{user_id}> manually created <#{channel_id}>\n>*{channel_purpose}*",
         )
 
-        # Add the completed event_id to the REQUESTS set
-        request_processed(event_id)
-
         log_entry["requestOutcome"] = "Relevant-Completed"
         logging.debug("Channel Created Event: Message Posted")
 
-        return
+    else:
+
+        log_entry["requestOutcome"] = "Irrelevant-Responded"
+        logging.debug("Channel Created Event: Ignored")
 
     # Add the completed event_id to the REQUESTS set
     request_processed(event_id)
 
-    log_entry["requestOutcome"] = "Irrelevant-Responded"
-    logging.debug("Channel Created Event: Ignored")
+    logging.debug(log_entry)
 
 
 @slack_events_adapter.on("channel_rename")
-def channel_renamed(event_data):
+def event_channel_renamed(event_data):
     log_entry = {}
 
     event_id = event_data["event_id"]
@@ -120,10 +118,12 @@ def channel_renamed(event_data):
         log_entry["requestOutcome"] = "Relevant-Completed"
         logging.debug(f"Channel Rename Event - Message Posted")
 
-        return
+    else:
+
+        log_entry["requestOutcome"] = "Irrelevant-Responded"
+        logging.debug("Channel Created Event: Ignored")
 
     # Add the completed event_id to the REQUESTS set
     request_processed(event_id)
 
-    log_entry["requestOutcome"] = "Irrelevant-Responded"
-    logging.debug(f"Channel Rename Event - Ignored")
+    logging.debug(log_entry)

@@ -4,20 +4,25 @@ from flask import request, make_response
 
 from app import app
 from app.views.create_change import show_view_create_change
-from app.commands import rename_change
-from app.helpers.slack import get_next_change_number
+from app.views import rename_change
+from app.helpers.slack import get_next_change_number, verify_request
+from app.helpers.redis import redis_q
+from app.workflows import change_going_live
 
 
 @app.route("/commands", methods=["POST"])
 def process_command():
-    command_text = request.form["text"]
+    if not verify_request(request):
+        return make_response("", 403)
+
+    form = request.form
+    command_text = form["text"]
     logging.debug(f"Command received: {request.form['command']} {command_text}")
 
-    # user_id = request.form["user_id"]
     trigger_id = request.form["trigger_id"]
 
     if command_text == "new":
-        show_view_create_change(trigger_id)
+        show_view_create_change(trigger_id, form)
         return make_response("", 200)
 
     elif command_text == "next":
@@ -28,7 +33,11 @@ def process_command():
         )
 
     elif command_text == "rename":
-        rename_change.rename_channel(request.form)
+        redis_q.enqueue(rename_change.rename_channel, request.form)
+        return make_response("", 200)
+
+    elif command_text == "release":
+        redis_q.enqueue(change_going_live.change_going_live, request.form)
         return make_response("", 200)
 
     else:

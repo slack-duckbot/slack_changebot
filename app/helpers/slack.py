@@ -1,3 +1,8 @@
+import hashlib
+import hmac
+import logging
+import time
+
 from slack import WebClient
 from app import app
 
@@ -65,12 +70,73 @@ def get_next_change_number():
 
     change_channel_list = get_full_conversations_list()
 
-    sorted_channel_list = sorted(change_channel_list, key=lambda i: i[0])
+    change_number_list = []
 
-    if len(sorted_channel_list) > 0:
-        most_recent_channel = sorted_channel_list[-1]
-        next_change_number = (
-            int(most_recent_channel[0].rsplit(sep="-", maxsplit=1)[-1]) + 1
-        )
+    for change in change_channel_list:
+        try:
+            channel_name = change[0]
+            change_number_list.append(int(channel_name.rpartition("-")[-1]))
+        except ValueError as e:
+            logging.error(f"Skipping invalid change number {channel_name} ({e})")
+            continue
 
-        return next_change_number
+    sorted_change_list = sorted(change_number_list, reverse=True)
+
+    next_change_number = next(iter(sorted_change_list)) + 1
+
+    return next_change_number
+
+
+def verify_request(request):
+    slack_signing_secret = bytes(app.config["SLACK_SIGNING_SECRET"], "utf-8")
+
+    request_body = request.get_data().decode()
+
+    slack_request_timestamp = request.headers["X-Slack-Request-Timestamp"]
+    slack_signature = request.headers["X-Slack-Signature"]
+
+    # Check that the request is no more than 60 seconds old
+    if (int(time.time()) - int(slack_request_timestamp)) > 60:
+        logging.warning("Verification failed. Request is out of date.")
+        return False
+
+    # Create a basestring by concatenating the version, the request timestamp, and the request body
+    basestring = f"v0:{slack_request_timestamp}:{request_body}".encode("utf-8")
+
+    # Hash the basestring using your signing secret, take the hex digest, and prefix with the version number
+    my_signature = (
+        "v0=" + hmac.new(slack_signing_secret, basestring, hashlib.sha256).hexdigest()
+    )
+
+    # Compare the resulting signature with the signature on the request to verify the request
+    if hmac.compare_digest(my_signature, slack_signature):
+        return True
+    else:
+        logging.warning("Verification failed. Signature invalid.")
+        return False
+
+
+def is_change_channel(channel_name, change_channel_prefix=None):
+    prefix = (
+        change_channel_prefix
+        if change_channel_prefix
+        else app.config["SLACK_CHANGE_CHANNEL_PREFIX"]
+    )
+
+    if channel_name.startswith(prefix):
+        return True
+    else:
+        return False
+
+
+def get_change_number_from_channel_name(channel_name):
+    return int(channel_name.rpartition("-")[-1])
+
+
+def get_channel_info(channel_id):
+    return client.conversations_info(channel=channel_id)
+
+
+def get_channel_purpose(channel_id):
+    info = get_channel_info(channel_id)
+    return info["channel"]["purpose"]["value"]

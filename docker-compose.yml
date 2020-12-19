@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "./:/usr/src/slack_changebot"
+    ports:
+      - "5000:5000"
+    command: [
+      "container_scripts/docker-wait.sh",
+      "rq-redis", "6379",
+      "python", "-m", "flask", "run",
+    ]
+    env_file: .env
+    environment:  # These override .env contents
+      FLASK_APP: app
+      FLASK_ENV: development
+      FLASK_RUN_HOST: 0.0.0.0
+      FLASK_RUN_PORT: 5000
+      ENVIRONMENT_NAME: dev
+      REDIS_URL: redis://rq-redis:6379
+    depends_on:
+      - rq-worker
+
+  rq-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.rq
+    volumes:
+      - "./:/usr/src/slack_changebot"
+    command: [
+      "container_scripts/docker-wait.sh",
+      "rq-redis", "6379",
+      "rq", "worker", "--url", "redis://rq-redis:6379",
+    ]
+    depends_on:
+      - rq-redis
+
+  rq-redis:
+    image: redis:6.0
