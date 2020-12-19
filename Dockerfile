@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9.1
 
 WORKDIR /usr/src/slack_changebot
 COPY requirements.txt requirements-dev.txt /usr/src/slack_changebot/
