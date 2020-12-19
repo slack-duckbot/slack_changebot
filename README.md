@@ -1,4 +1,4 @@
-# changebot v0.3
+# changebot v0.4
 
 ## Running the stack locally under Docker
 
