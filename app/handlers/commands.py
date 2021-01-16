@@ -22,7 +22,7 @@ def process_command():
     trigger_id = request.form["trigger_id"]
 
     if command_text == "new":
-        show_view_create_change(trigger_id, form)
+        redis_q.enqueue(show_view_create_change, trigger_id, form)
         return make_response("", 200)
 
     elif command_text == "next":
