@@ -5,9 +5,9 @@ from flask import request, make_response
 from app import app
 from app.views.create_change import show_view_create_change
 from app.views import rename_change
-from app.helpers.slack import get_next_change_number, verify_request
+from app.helpers.slack import verify_request
 from app.helpers.redis import redis_q
-from app.workflows import change_going_live
+from app.workflows import change_going_live, next_change
 
 
 @app.route("/commands", methods=["POST"])
@@ -26,11 +26,9 @@ def process_command():
         return make_response("", 200)
 
     elif command_text == "next":
-        next_change_number = get_next_change_number()
-        return make_response(
-            f"The next available Slack change channel is: *{next_change_number}*\n*MAKE SURE YOU CHECK THE CHANGES TRELLO BOARD TOO* :eyes: https://trello.com/b/cj665kSN/111-ol-release-board",
-            200,
-        )
+        response_url = request.form["response_url"]
+        redis_q.enqueue(next_change.next_change, response_url)
+        return make_response("", 200)
 
     elif command_text == "rename":
         redis_q.enqueue(rename_change.rename_channel, request.form)

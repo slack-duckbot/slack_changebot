@@ -6,3 +6,4 @@ python-dotenv
 jira
 rq
 redis
+requests
