@@ -1,3 +1,5 @@
+import logging
+
 from flask import json
 from flask import request, make_response
 
@@ -9,6 +11,7 @@ from app.helpers import general
 from app.workflows import create_change
 
 from app.views.edit_change import show_view_edit_change
+from app.views.create_change import show_view_create_change
 
 client = get_slack_client()
 
@@ -22,6 +25,8 @@ def process_interactive():
     message_payload = json.loads(request.form["payload"])
     user_id = message_payload["user"]["id"]
     trigger_id = message_payload["trigger_id"]
+    logging.debug(f"Trigger ID is {trigger_id}")
+    logging.debug(f"message_payload is {message_payload}")
 
     if message_payload["type"] == "block_actions":
         change_summary_block = next(
@@ -122,5 +127,10 @@ def process_interactive():
             new_name = state_values["new_name"]["txt_new_name"]["value"]
             channel_id = metadata["channel_id"]
             client.conversations_rename(channel=channel_id, name=new_name)
+
+        if callback_id == "create_change_loading_modal":
+            metadata = json.loads(message_payload["view"]["private_metadata"])
+            channel_id = metadata["channel_id"]
+            redis_q.enqueue(show_view_create_change, trigger_id, channel_id)
 
         return make_response("", 200)

@@ -4,6 +4,7 @@ from flask import request, make_response
 
 from app import app
 from app.views.create_change import show_view_create_change
+from app.views.create_change_loading import show_view_create_change_loading
 from app.views import rename_change
 from app.helpers.slack import verify_request
 from app.helpers.redis import redis_q
@@ -22,7 +23,7 @@ def process_command():
     trigger_id = request.form["trigger_id"]
 
     if command_text == "new":
-        redis_q.enqueue(show_view_create_change, trigger_id, form)
+        show_view_create_change_loading(trigger_id, form)
         return make_response("", 200)
 
     elif command_text == "next":
