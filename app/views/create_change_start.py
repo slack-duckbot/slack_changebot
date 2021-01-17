@@ -1,12 +1,11 @@
 import json
 
-from app.helpers.slack import get_slack_client
-from app import app
+from app.helpers.slack import get_slack_client, get_next_change_number
 
 client = get_slack_client()
 
 
-def show_view_create_change_loading(trigger_id, form):
+def show_view_create_change_start(trigger_id, form):
     channel_id = form["channel_id"]
 
     modal = {
@@ -32,3 +31,8 @@ def show_view_create_change_loading(trigger_id, form):
     }
 
     client.views_open(trigger_id=trigger_id, view=modal)
+
+    # We get the latest conversations list here to cache it for use by the Create Change view (ttl is 30 seconds)
+    # With large conversations lists, I've found it takes too long to do immediately before creating the view, which
+    # causes the interaction trigger to expire.
+    get_next_change_number()

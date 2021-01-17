@@ -1,5 +1,3 @@
-import logging
-
 from flask import json
 from flask import request, make_response
 
@@ -9,7 +7,6 @@ from app.helpers.slack import does_channel_exist, get_slack_client, verify_reque
 from app.helpers.redis import redis_q
 from app.helpers import general
 from app.workflows import create_change
-
 from app.views.edit_change import show_view_edit_change
 from app.views.create_change import show_view_create_change
 
@@ -25,8 +22,6 @@ def process_interactive():
     message_payload = json.loads(request.form["payload"])
     user_id = message_payload["user"]["id"]
     trigger_id = message_payload["trigger_id"]
-    logging.debug(f"Trigger ID is {trigger_id}")
-    logging.debug(f"message_payload is {message_payload}")
 
     if message_payload["type"] == "block_actions":
         change_summary_block = next(
