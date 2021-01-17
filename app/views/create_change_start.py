@@ -24,7 +24,7 @@ def show_view_create_change_start(trigger_id, form):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Duckbot will help you create a new channel now...",
+                    "text": "Duckbot's preening its feathers to help you create a change..",
                 },
             },
         ],
