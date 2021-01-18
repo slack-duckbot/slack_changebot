@@ -17,14 +17,22 @@ def show_view_create_change_start(trigger_id, form):
             "text": "Create change channel",
             "emoji": True,
         },
-        "submit": {"type": "plain_text", "text": "Go"},
+        "submit": {"type": "plain_text", "text": "Quack"},
         "close": {"type": "plain_text", "text": "Cancel"},
         "blocks": [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Duckbot's preening its feathers to help you create a change..",
+                    "text": "*Preening feathers...*",
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "_Duckbot has to distract you with this view whilst it does some quick prep to help comply "
+                            "with Slack's timeout rules..._",
                 },
             },
         ],
