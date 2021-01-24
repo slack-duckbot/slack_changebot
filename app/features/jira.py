@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from jira import JIRA
@@ -6,11 +7,15 @@ from app import app
 
 
 if app.config["ENABLE_JIRA_INTEGRATION"]:
+    logging.debug("Creating Jira client")
     jira_options = {"server": app.config["JIRA_SERVER"]}
-    jira_client = JIRA(
-        options=jira_options,
-        basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
-    )
+    try:
+        jira_client = JIRA(
+            options=jira_options,
+            basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
+        )
+    except:
+        logging.debug("Issue creating Jira client")
 
 
 def create_jira_release(change_number, user_name, description):
