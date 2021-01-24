@@ -14,8 +14,8 @@ if app.config["ENABLE_JIRA_INTEGRATION"]:
             options=jira_options,
             basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
         )
-    except:
-        logging.debug("Issue creating Jira client")
+    except Exception as e:
+        logging.debug(f"Issue creating Jira client: {e}")
 
 
 def create_jira_release(change_number, user_name, description):
