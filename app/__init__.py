@@ -6,6 +6,7 @@ from flask import Flask
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("slack").setLevel(logging.WARNING)
+logging.getLogger("jira").setLevel(logging.DEBUG)
 logging.getLogger("asyncio").setLevel(logging.WARNING)
 logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
