@@ -6,22 +6,21 @@ from jira import JIRA
 from app import app
 
 
-if app.config["ENABLE_JIRA_INTEGRATION"]:
-    logging.debug("Creating Jira client")
-    jira_options = {"server": app.config["JIRA_SERVER"]}
-    try:
-        truncated_pwd = app.config["JIRA_PASSWORD"][-4:]
-        logging.debug(truncated_pwd)
-        jira_client = JIRA(
-            options=jira_options,
-            basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
-        )
-        logging.debug("Jira client created")
-    except Exception as e:
-        logging.debug(f"Issue creating Jira client: {e}")
-
-
 def create_jira_release(change_number, user_name, description):
+    if app.config["ENABLE_JIRA_INTEGRATION"]:
+        logging.debug("Creating Jira client")
+        jira_options = {"server": app.config["JIRA_SERVER"]}
+        try:
+            truncated_pwd = app.config["JIRA_PASSWORD"][-4:]
+            logging.debug(truncated_pwd)
+            jira_client = JIRA(
+                options=jira_options,
+                basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
+            )
+            logging.debug("Jira client created")
+        except Exception as e:
+            logging.debug(f"Issue creating Jira client: {e}")
+
     if app.config["ENABLE_JIRA_INTEGRATION"]:
         today = date.today()
         change_name = app.config["JIRA_PREFIX"] + change_number
