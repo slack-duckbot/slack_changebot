@@ -3,8 +3,13 @@ import hmac
 import logging
 import time
 
+from redis_cache import RedisCache
 from slack import WebClient
+
 from app import app
+from app.helpers.redis import redis_conn
+
+cache = RedisCache(redis_client=redis_conn)
 
 
 def get_slack_client():
@@ -66,8 +71,8 @@ def extract_change_channels(channels):
     return channel_list
 
 
+@cache.cache(ttl=30)
 def get_next_change_number():
-
     change_channel_list = get_full_conversations_list()
 
     change_number_list = []
@@ -83,7 +88,7 @@ def get_next_change_number():
     sorted_change_list = sorted(change_number_list, reverse=True)
 
     next_change_number = next(iter(sorted_change_list)) + 1
-
+    logging.debug(f"Next change number: {next_change_number}")
     return next_change_number
 
 

@@ -7,8 +7,8 @@ from app.helpers.slack import does_channel_exist, get_slack_client, verify_reque
 from app.helpers.redis import redis_q
 from app.helpers import general
 from app.workflows import create_change
-
 from app.views.edit_change import show_view_edit_change
+from app.views.create_change import show_view_create_change
 
 client = get_slack_client()
 
@@ -122,5 +122,10 @@ def process_interactive():
             new_name = state_values["new_name"]["txt_new_name"]["value"]
             channel_id = metadata["channel_id"]
             client.conversations_rename(channel=channel_id, name=new_name)
+
+        if callback_id == "create_change_loading_modal":
+            metadata = json.loads(message_payload["view"]["private_metadata"])
+            channel_id = metadata["channel_id"]
+            redis_q.enqueue(show_view_create_change, trigger_id, channel_id)
 
         return make_response("", 200)

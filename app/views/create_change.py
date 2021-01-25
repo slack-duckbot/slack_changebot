@@ -6,9 +6,8 @@ from app import app
 client = get_slack_client()
 
 
-def show_view_create_change(trigger_id, form):
+def show_view_create_change(trigger_id, channel_id):
     next_change_number = get_next_change_number()
-    channel_id = form["channel_id"]
 
     modal = {
         "private_metadata": json.dumps({"channel_id": channel_id}),

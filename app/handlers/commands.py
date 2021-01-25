@@ -3,7 +3,7 @@ import logging
 from flask import request, make_response
 
 from app import app
-from app.views.create_change import show_view_create_change
+from app.views.create_change_start import show_view_create_change_start
 from app.views import rename_change
 from app.helpers.slack import verify_request
 from app.helpers.redis import redis_q
@@ -22,7 +22,9 @@ def process_command():
     trigger_id = request.form["trigger_id"]
 
     if command_text == "new":
-        redis_q.enqueue(show_view_create_change, trigger_id, form)
+        # We show an initial start view so that we can give enough time to perform slow actions async.
+        # This is to help us manage Slack's strict timeout rules.
+        redis_q.enqueue(show_view_create_change_start, trigger_id, form)
         return make_response("", 200)
 
     elif command_text == "next":

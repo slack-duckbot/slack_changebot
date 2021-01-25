@@ -7,3 +7,4 @@ jira
 rq
 redis
 requests
+python-redis-cache
