@@ -12,7 +12,8 @@ services:
     command: [
       "container_scripts/docker-wait.sh",
       "rq-redis", "6379",
-      "python", "-m", "flask", "run",
+#      "python", "-m", "flask", "run",
+      "gunicorn", "--workers=1", "app:app", "--log-level=debug", "--log-file", "-"
     ]
     env_file: .env
     environment:  # These override .env contents
