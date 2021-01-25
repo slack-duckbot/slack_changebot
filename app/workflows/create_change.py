@@ -35,9 +35,7 @@ def create_change(message_payload):
 
     change_meta_field = [{"type": "mrkdwn", "text": f"*Channel*\n<#{new_channel_id}>"}]
 
-    jira_release_url = jira.create_jira_release(
-        change_number, user_name, change_summary
-    )
+    jira_release_url = jira.create_jira_release(change_number, user_name, change_summary)
 
     if jira_release_url is not False:
         change_meta_field.append(
