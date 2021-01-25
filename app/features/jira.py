@@ -14,6 +14,7 @@ if app.config["ENABLE_JIRA_INTEGRATION"]:
             options=jira_options,
             basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
         )
+        logging.debug("Jira client created")
     except Exception as e:
         logging.debug(f"Issue creating Jira client: {e}")
 
