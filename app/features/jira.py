@@ -10,6 +10,8 @@ if app.config["ENABLE_JIRA_INTEGRATION"]:
     logging.debug("Creating Jira client")
     jira_options = {"server": app.config["JIRA_SERVER"]}
     try:
+        truncated_pwd = app.config["JIRA_PASSWORD"][-4:]
+        logging.debug(truncated_pwd)
         jira_client = JIRA(
             options=jira_options,
             basic_auth=(app.config["JIRA_USERNAME"], app.config["JIRA_PASSWORD"]),
