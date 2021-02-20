@@ -1,10 +1,6 @@
 import json
 import os
 
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
 
 def config_string_to_bool(setting):
     if setting.lower() in ("true", "yes", "on"):

@@ -1,5 +1,22 @@
-FROM python:3.9.1
+FROM python:3.9.2 as duckbot_base
+WORKDIR /code
+COPY requirements.txt /code/
+COPY app /code/app
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-WORKDIR /usr/src/slack_changebot
-COPY requirements.txt requirements-dev.txt /usr/src/slack_changebot/
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
+FROM duckbot_base as duckbot_prod
+WORKDIR /code
+EXPOSE 8000
+ENTRYPOINT ["gunicorn", "--workers=1", "-b", "0.0.0.0:8000", "app:app", "--log-file", "-"]
+
+FROM duckbot_base as duckbot_worker
+WORKDIR /code
+COPY worker/rq_settings.py /code/
+ENTRYPOINT ["rq", "worker", "-c", "worker.rq_settings"]
+
+FROM duckbot_base as duckbot_dev
+WORKDIR /code
+COPY requirements-dev.txt /code/
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements-dev.txt
+EXPOSE 5000
+CMD ["python", "-m", "flask", "run", "--eager-loading"]
