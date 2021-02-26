@@ -11,7 +11,7 @@ ENTRYPOINT ["gunicorn", "--workers=1", "-b", "0.0.0.0:8000", "app:app", "--log-f
 
 FROM duckbot_base as duckbot_worker
 WORKDIR /code
-COPY worker/rq_settings.py /code/
+COPY worker/rq_settings.py /code/worker/rq_settings.py
 ENTRYPOINT ["rq", "worker", "-c", "worker.rq_settings"]
 
 FROM duckbot_base as duckbot_dev
