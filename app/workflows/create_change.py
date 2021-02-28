@@ -8,6 +8,7 @@ client = sl.get_slack_client()
 
 
 def create_change(message_payload):
+    logging.info("Starting Workflow: Create Change")
 
     user_id = message_payload["user"]["id"]
     user_name = message_payload["user"]["name"]
@@ -112,3 +113,5 @@ def create_change(message_payload):
     selected_users.append(user_id)
 
     client.conversations_invite(channel=new_channel_id, users=selected_users)
+
+    logging.info("Finished Workflow: Create Change")
