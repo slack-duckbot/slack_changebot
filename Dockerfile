@@ -1,8 +1,8 @@
 FROM python:3.9.2 as duckbot_base
 WORKDIR /code
 COPY requirements.txt /code/
-COPY app /code/app
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+COPY app /code/app
 
 FROM duckbot_base as duckbot_prod
 WORKDIR /code
