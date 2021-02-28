@@ -71,7 +71,7 @@ def extract_change_channels(channels):
     return channel_list
 
 
-@cache.cache(ttl=30)
+@cache.cache(ttl=60)
 def get_next_change_number():
     logging.info("Getting next change number")
     change_channel_list = get_full_conversations_list()
@@ -79,8 +79,8 @@ def get_next_change_number():
     change_number_list = []
 
     for change in change_channel_list:
+        channel_name = change[0]
         try:
-            channel_name = change[0]
             change_number_list.append(int(channel_name.rpartition("-")[-1]))
         except ValueError as e:
             logging.debug(f"Skipping invalid change number {channel_name} ({e})")
