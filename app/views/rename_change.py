@@ -4,7 +4,6 @@ import logging
 import requests
 
 from app.helpers.slack import get_slack_client
-from app import app
 
 client = get_slack_client()
 
@@ -25,35 +24,33 @@ def rename_channel(form):
 
     metadata = {"channel_id": channel_id}
 
-    # We only want to rename change channels that match the specified prefix pattern
-    if channel_name.startswith(app.config["SLACK_CHANGE_CHANNEL_PREFIX"]):
-        modal = {
-            "type": "modal",
-            "callback_id": "rename_conversation_modal",
-            "title": {
-                "type": "plain_text",
-                "text": "Rename conversation",
-                "emoji": True,
-            },
-            "submit": {"type": "plain_text", "text": "Rename"},
-            "close": {"type": "plain_text", "text": "Cancel"},
-            "blocks": [
-                {
-                    "block_id": "new_name",
-                    "type": "input",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "New name",
-                        "emoji": False,
-                    },
-                    "element": {
-                        "type": "plain_text_input",
-                        "action_id": "txt_new_name",
-                        "multiline": False,
-                    },
+    modal = {
+        "type": "modal",
+        "callback_id": "rename_conversation_modal",
+        "title": {
+            "type": "plain_text",
+            "text": "Rename conversation",
+            "emoji": True,
+        },
+        "submit": {"type": "plain_text", "text": "Rename"},
+        "close": {"type": "plain_text", "text": "Cancel"},
+        "blocks": [
+            {
+                "block_id": "new_name",
+                "type": "input",
+                "label": {
+                    "type": "plain_text",
+                    "text": "New name",
+                    "emoji": False,
                 },
-            ],
-            "private_metadata": json.dumps(metadata),
-        }
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "txt_new_name",
+                    "multiline": False,
+                },
+            },
+        ],
+        "private_metadata": json.dumps(metadata),
+    }
 
-        client.views_open(trigger_id=trigger_id, view=modal)
+    client.views_open(trigger_id=trigger_id, view=modal)
