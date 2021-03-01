@@ -6,7 +6,7 @@ from flask import request, make_response
 from app import app
 from app.views.create_change_start import show_view_create_change_start
 from app.views import rename_change
-from app.helpers.slack import verify_request
+from app.helpers.slack import verify_request, get_next_change_number
 from app.helpers.redis import redis_q
 from app.workflows import change_going_live, next_change
 
@@ -28,7 +28,7 @@ def process_command():
     if command_text == "new":
         # We show an initial start view so that we can give enough time to perform slow actions async.
         # This is to help us manage Slack's strict timeout rules.
-        thread_1 = threading.Thread(target=next_change.next_change)
+        thread_1 = threading.Thread(target=get_next_change_number)
 
         thread_2 = threading.Thread(
             target=show_view_create_change_start,
