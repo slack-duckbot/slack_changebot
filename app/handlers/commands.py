@@ -1,4 +1,5 @@
 import logging
+import threading
 
 from flask import request, make_response
 
@@ -24,20 +25,39 @@ def process_command():
     if command_text == "new":
         # We show an initial start view so that we can give enough time to perform slow actions async.
         # This is to help us manage Slack's strict timeout rules.
-        redis_q.enqueue(show_view_create_change_start, trigger_id, form)
+        thread = threading.Thread(
+            target=redis_q.enqueue,
+            args=(show_view_create_change_start, trigger_id, form),
+        )
+        thread.start()
+        # redis_q.enqueue(show_view_create_change_start, trigger_id, form)
         return make_response("", 200)
 
     elif command_text == "next":
         response_url = request.form["response_url"]
-        redis_q.enqueue(next_change.next_change, response_url)
+        thread = threading.Thread(
+            target=redis_q.enqueue, args=(next_change.next_change, response_url)
+        )
+        thread.start()
+        # redis_q.enqueue(next_change.next_change, response_url)
         return make_response("", 200)
 
     elif command_text == "rename":
-        redis_q.enqueue(rename_change.rename_channel, request.form)
+        thread = threading.Thread(
+            target=redis_q.enqueue,
+            args=(rename_change.rename_channel, request.form),
+        )
+        thread.start()
+        # redis_q.enqueue(rename_change.rename_channel, request.form)
         return make_response("", 200)
 
     elif command_text == "release":
-        redis_q.enqueue(change_going_live.change_going_live, request.form)
+        thread = threading.Thread(
+            target=redis_q.enqueue,
+            args=(change_going_live.change_going_live, request.form),
+        )
+        thread.start()
+        # redis_q.enqueue(change_going_live.change_going_live, request.form)
         return make_response("", 200)
 
     else:
