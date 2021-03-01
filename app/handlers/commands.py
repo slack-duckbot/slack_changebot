@@ -38,9 +38,10 @@ def process_command():
 
     elif command_text == "next":
         response_url = request.form["response_url"]
-        thread = threading.Thread(
-            target=redis_q.enqueue, args=(next_change.next_change, response_url)
-        )
+        # thread = threading.Thread(
+        #     target=redis_q.enqueue, args=(next_change.next_change, response_url)
+        # )
+        thread = threading.Thread(target=next_change.next_change, args=(response_url,))
         thread.start()
         # redis_q.enqueue(next_change.next_change, response_url)
         return make_response("", 200)
