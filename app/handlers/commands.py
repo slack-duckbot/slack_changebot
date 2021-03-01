@@ -39,17 +39,12 @@ def process_command():
         )
         thread_1.start()
         thread_2.start()
-        # redis_q.enqueue(show_view_create_change_start, trigger_id, form)
         return make_response("", 200)
 
     elif command_text == "next":
         response_url = request.form["response_url"]
-        # thread = threading.Thread(
-        #     target=redis_q.enqueue, args=(next_change.next_change, response_url)
-        # )
         thread = threading.Thread(target=next_change.next_change, args=(response_url,))
         thread.start()
-        # redis_q.enqueue(next_change.next_change, response_url)
         return make_response("", 200)
 
     elif command_text == "rename":
@@ -58,7 +53,6 @@ def process_command():
             args=(rename_change.rename_channel, request.form),
         )
         thread.start()
-        # redis_q.enqueue(rename_change.rename_channel, request.form)
         return make_response("", 200)
 
     elif command_text == "release":
@@ -67,7 +61,6 @@ def process_command():
             args=(change_going_live.change_going_live, request.form),
         )
         thread.start()
-        # redis_q.enqueue(change_going_live.change_going_live, request.form)
         return make_response("", 200)
 
     else:
