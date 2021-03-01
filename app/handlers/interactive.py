@@ -1,3 +1,5 @@
+import threading
+
 from flask import json
 from flask import request, make_response
 
@@ -126,6 +128,14 @@ def process_interactive():
         if callback_id == "create_change_loading_modal":
             metadata = json.loads(message_payload["view"]["private_metadata"])
             channel_id = metadata["channel_id"]
-            redis_q.enqueue(show_view_create_change, trigger_id, channel_id)
+            thread = threading.Thread(
+                target=show_view_create_change,
+                args=(
+                    trigger_id,
+                    channel_id,
+                ),
+            )
+            thread.start()
+            # redis_q.enqueue(show_view_create_change, trigger_id, channel_id)
 
         return make_response("", 200)
