@@ -28,11 +28,17 @@ def process_command():
     if command_text == "new":
         # We show an initial start view so that we can give enough time to perform slow actions async.
         # This is to help us manage Slack's strict timeout rules.
-        thread = threading.Thread(
-            target=redis_q.enqueue,
-            args=(show_view_create_change_start, trigger_id, form),
+        thread_1 = threading.Thread(target=next_change.next_change)
+
+        thread_2 = threading.Thread(
+            target=show_view_create_change_start,
+            args=(
+                trigger_id,
+                form,
+            ),
         )
-        thread.start()
+        thread_1.start()
+        thread_2.start()
         # redis_q.enqueue(show_view_create_change_start, trigger_id, form)
         return make_response("", 200)
 
