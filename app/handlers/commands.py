@@ -11,6 +11,9 @@ from app.helpers.redis import redis_q
 from app.workflows import change_going_live, next_change
 
 
+# Using threads within these methods to try and keep the response time to the Slack API as low as possible
+
+
 @app.route("/commands", methods=["POST"])
 def process_command():
     if not verify_request(request):
